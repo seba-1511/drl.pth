@@ -1,2 +1,6 @@
 
 randopt_results/**
+
+# Compiled files
+*.pyc
+**/*.pyc

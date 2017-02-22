@@ -4,17 +4,16 @@ import gym
 import randopt as ro
 import mj_envs
 
+from benchmark import test
 from utils import parse_args, get_algo
+
+rank = 0
 
 def mpi_average(params):
     pass
 
 
-def main(args):
-    env = gym.make(args.env)
-    
-    agent = get_algo(args.algo)()
-
+def mpi_train(args, env, agent):
     train_iter = 0
     mpi_average(agent.parameters)
     while train_iter < args.n_iter and not agent.done():
@@ -35,7 +34,13 @@ def main(args):
         train_iter += 1
 
 
-
 if __name__ == '__main__':
     args = parse_args()
-    main(args)
+
+    env = gym.make(args.env)
+    agent = get_algo(args.algo)()
+
+    mpi_train(args, env, agent)
+
+    if rank == 0:
+        test(args, env, agent)

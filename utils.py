@@ -23,6 +23,8 @@ def parse_args():
                         default=1000.0, help='Threshold at which the environment is considered solved.')
     parser.add_argument('--n_iter', dest='n_iter', type=int,
                         default=300, help='Number of updates to be performed.')
+    parser.add_argument('--n_test_iter', dest='n_test_iter', type=int,
+                        default=100, help='Number of episodes to test on.')
     parser.add_argument(
         '--timesteps_per_batch', dest='timesteps_per_batch', type=int,
             default=15000, help='Number of steps before updating parameters.')
