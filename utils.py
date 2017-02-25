@@ -31,6 +31,8 @@ def parse_args():
                         default='reinforce', help='Name of the learning algorithm.')
     parser.add_argument('--env', dest='env', type=str,
                         default='InvertedPendulum-v1', help='Name of the environment to learn.')
+    parser.add_argument('--n_proc', dest='n_proc', type=int,
+                        default=8, help='Number of processes (for async only)')
     parser.add_argument('--policy', dest='policy', type=str,
                         default='FC', help='What kind of policy to use')
     parser.add_argument('--opt', dest='opt', type=str,
@@ -97,11 +99,12 @@ def get_opt(name):
 
 def get_setup(seed_offset=0):
     args = parse_args()
+    args.seed += seed_offset
     env = gym.make(args.env)
-    env.seed(args.seed + seed_offset)
-    th.manual_seed(args.seed + seed_offset)
+    env.seed(args.seed)
+    th.manual_seed(args.seed)
     policy = get_policy(args.policy)(numel(env.observation_space),
-                                     numel(env.action_space), layers=(5, 5))
+                                     numel(env.action_space), layers=(64, 64))
     agent = get_algo(args.algo)(policy=policy, gamma=args.gamma, 
                                 update_frequency=args.timesteps_per_batch)
     opt = get_opt(args.opt)(agent.parameters(), lr=args.lr)

@@ -1,17 +1,21 @@
 
-.PHONY: all dev mpi
-
 ALGO=reinforce
 ENV=InvertedPendulum-v1
-N_ITER=400
+N_ITER=300
 TEST_N_ITER=100
 OPT=Adam
 LR=0.001
+NUM_WORKERS=8
 
-all: mpi
+.PHONY: all dev mpi
+
+all: async
 
 mpi:
-	mpirun -n 8 python mpi_bench.py --algo reinforce --env InvertedPendulum-v1 --n_iter 300 --n_test_iter 10 --timesteps_per_batch 5000 --opt Adam --lr 0.001
+	mpirun -n $(NUM_WORKERS) python mpi_bench.py --algo $(ALGO) --env $(ENV) --n_iter $(N_ITER) --n_test_iter 100 --opt $(OPT) --lr $(LR)
 
 dev:
-	python benchmark.py --algo reinforce --env InvertedPendulum-v1 --n_iter 400 --n_test_iter 10 --timesteps_per_batch 5000 --opt Adam --lr 0.001
+	python benchmark.py --algo $(ALGO) --env $(ENV) --n_iter $(N_ITER) --n_test_iter 100 --opt $(OPT) --lr $(LR)
+
+async:
+	python async_bench.py --n_proc $(NUM_WORKERS) --algo $(ALGO) --env $(ENV) --n_iter $(N_ITER) --n_test_iter 100 --opt $(OPT) --lr $(LR)
