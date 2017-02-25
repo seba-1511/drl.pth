@@ -17,7 +17,7 @@ class BaseAgent(object):
         raise NotImplementedError()
 
     def learn(self, state=None, action=None, reward=None, next_state=None, done=None):
-        """ Given (s, a, r, s') tuples, oes the necessary to compute the update. """
+        """ Given (s, a, r, s') tuples, does the necessary to compute the update. """
         pass
 
     def new_episode(self, terminated=False):
@@ -34,8 +34,14 @@ class BaseAgent(object):
 
     def update(self, update):
         """ Applies the update to the parameters. """
-        pass
+        for p, u in zip(self.parameters(), update):
+            p.data.add_(u)
 
     def get_update(self):
         """ Returns the parameter update from local experience."""
         return None
+
+    def set_gradients(self, gradients):
+        """ Sets gradients of the parameters. """
+        for p, g in zip(self.parameters(), gradients):
+            p.grad.data.set_(g)

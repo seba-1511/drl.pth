@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
 import gym
-import randopt as ro
 import mj_envs
+import randopt as ro
 
 from benchmark import test
-from utils import parse_args, get_algo
+from utils import parse_args, get_algo, get_policy, numel
 
 rank = 0
 
@@ -38,7 +38,8 @@ if __name__ == '__main__':
     args = parse_args()
 
     env = gym.make(args.env)
-    agent = get_algo(args.algo)()
+    policy = get_policy(args.policy)(numel(env.observation_space), numel(env.action_space))
+    agent = get_algo(args.algo)(policy=policy)
 
     mpi_train(args, env, agent)
 
