@@ -43,7 +43,7 @@ class Reinforce(BaseAgent):
             preds = self.policy.forward(s)
             log_preds = th.log(preds) * (R - self.baseline)
             th.sum(log_preds).backward()
-        return [p.grad.data for p in self.parameters()]
+        return [p.grad.clone() for p in self.parameters()]
 
     def updatable(self):
         if self.update_ready:

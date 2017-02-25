@@ -95,11 +95,11 @@ def get_opt(name):
     }
     return policies[name]
 
-def get_setup():
+def get_setup(seed_offset=0):
     args = parse_args()
     env = gym.make(args.env)
-    env.seed(args.seed)
-    th.manual_seed(args.seed)
+    env.seed(args.seed + seed_offset)
+    th.manual_seed(args.seed + seed_offset)
     policy = get_policy(args.policy)(numel(env.observation_space),
                                      numel(env.action_space), layers=(5, 5))
     agent = get_algo(args.algo)(policy=policy, gamma=args.gamma, 

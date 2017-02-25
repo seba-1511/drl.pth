@@ -24,7 +24,7 @@ def train_update(args, env, agent, opt):
     update = agent.get_update()
     opt.step()
 
-def train(args, env, agent, opt, update):
+def train(args, env, agent, opt, update, verbose=True):
     train_iter = 1
     train_rewards = []
     episode_reward = 0.0
@@ -47,14 +47,16 @@ def train(args, env, agent, opt, update):
                 break
             state = next_state
         agent.new_episode(done)
-        print_stats('Train', episode_reward, train_iter, time() - train_start, train_steps)
+        if verbose:
+            print_stats('Train', episode_reward, train_iter, time() - train_start, train_steps)
         train_rewards.append(episode_reward)
         episode_reward = 0.0
         train_iter += 1
-    reward_plot = Plot('Train Reward')
-    reward_plot.plot(range(len(train_rewards)), train_rewards)
-    reward_plot.save('./train.pdf')
-    print ('num_udpates: ', num_udpates)
+    if verbose:
+        reward_plot = Plot('Train Reward')
+        reward_plot.plot(range(len(train_rewards)), train_rewards)
+        reward_plot.save('./train.pdf')
+        print ('num_udpates: ', num_udpates)
 
 
 def test(args, env, agent):

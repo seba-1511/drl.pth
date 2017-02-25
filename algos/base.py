@@ -44,4 +44,4 @@ class BaseAgent(object):
     def set_gradients(self, gradients):
         """ Sets gradients of the parameters. """
         for p, g in zip(self.parameters(), gradients):
-            p.grad.data.set_(g)
+            p.grad.data[:] = g.data
