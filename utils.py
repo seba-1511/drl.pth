@@ -10,7 +10,7 @@ import mj_transfer
 import torch as th
 
 from argparse import ArgumentParser
-from algos import A3C, Reinforce, TRPO
+from algos import A3C, Reinforce, TRPO, Random
 from models import FCPolicy
 from torch import optim
 
@@ -77,6 +77,7 @@ def get_algo(name):
         'reinforce': Reinforce,
         'trpo': TRPO,
         'a3c': A3C,
+        'random': Random,
     }
     return algos[name]
 
@@ -107,5 +108,7 @@ def get_setup(seed_offset=0):
                                      numel(env.action_space), layers=(64, 64))
     agent = get_algo(args.algo)(policy=policy, gamma=args.gamma, 
                                 update_frequency=args.timesteps_per_batch)
-    opt = get_opt(args.opt)(agent.parameters(), lr=args.lr)
+    opt = None
+    if agent.parameters() is not None:
+        opt = get_opt(args.opt)(agent.parameters(), lr=args.lr)
     return args, env, agent, opt

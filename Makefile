@@ -1,5 +1,6 @@
 
-ALGO=reinforce
+ALGO=random
+#ALGO=trpo
 ENV=InvertedPendulum-v1
 N_ITER=200
 TEST_N_ITER=100

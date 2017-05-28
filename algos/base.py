@@ -7,7 +7,6 @@ class BaseAgent(object):
     The base of all agents.
     """
 
-    @property
     def parameters(self):
         """ Provides access to all learnable parameters of the agent. """
         return None
@@ -34,8 +33,8 @@ class BaseAgent(object):
 
     def update(self, update):
         """ Applies the update to the parameters. """
-        for p, u in zip(self.parameters(), update):
-            p.data.add_(u)
+        for param, updt in zip(self.parameters, update):
+            param.data.add_(updt)
 
     def get_update(self):
         """ Returns the parameter update from local experience."""
@@ -43,5 +42,5 @@ class BaseAgent(object):
 
     def set_gradients(self, gradients):
         """ Sets gradients of the parameters. """
-        for p, g in zip(self.parameters(), gradients):
-            p.grad.data[:] = g.data
+        for param, grad in zip(self.parameters, gradients):
+            param.grad.data[:] = grad.data
