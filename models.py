@@ -21,7 +21,7 @@ class FCPolicy(nn.Module):
         setattr(self, 'last', layer)
         self.params = params
         if activation is None:
-            activation = F.relu
+            activation = F.tanh
         self.activation = activation
         self.num_in = num_in
         self.num_out = num_out

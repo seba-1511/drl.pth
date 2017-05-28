@@ -20,7 +20,6 @@ class Reinforce(BaseAgent):
         self.rewards = []
         self.states = []
 
-
     def parameters(self):
         return self.policy.parameters()
 
