@@ -3,10 +3,7 @@
 import torch as th
 from torch.autograd import Variable as V
 from base import BaseAgent
-from algos_utils import discount, LinearVF
-
-
-EPSILON = 1e-8
+from algos_utils import discount, normalize, LinearVF, EPSILON
 
 
 class TRPO(BaseAgent):
@@ -59,12 +56,12 @@ class TRPO(BaseAgent):
         action_mean = self.policy.forward(state)
         action_logstd = self.action_logstd_param
         action = action_mean.data + th.rand(action_mean.size()) * th.exp(self.action_logstd_param).data
-        return action.numpy(), {'action_mean': action_mean.data,
-                                'action_logstd': action_logstd.data}
+        return action.tolist(), {'action_mean': action_mean.data.tolist(),
+                                 'action_logstd': action_logstd.data.tolist()}
 
     def learn(self, state, action, reward, next_state, done, info=None):
         self.iter_actions[-1].append(action)
-        self.iter_states[-1].append(state)
+        self.iter_states[-1].append(state.tolist())
         self.iter_rewards[-1].append(reward)
         self.iter_actions_mean[-1].append(info['action_mean'])
         self.iter_actions_logstd[-1].append(info['action_logstd'])
@@ -105,4 +102,18 @@ class TRPO(BaseAgent):
         # Fit baseline for next iter
         self.baseline.learn(self.iter_states, returns)
 
+        # Create variables
+        states = th.Tensor(self.iter_states)
+        actions = th.Tensor(self.iter_actions)
+        means = th.Tensor(self.iter_actions_mean)
+        means = means.view(states.size(0), -1)
+        logstds = th.Tensor(self.iter_actions_logstd).view(states.size(0), -1)
+        advantages = normalize(th.cat(advantages))
+
+        # Start Computing the actual update
+        inputs = [actions, states, means, logstds, advantages]
+        # surr_loss, surr_gradients = self.surrogate(*inputs) 
+
+        # At last, reset iteration statistics
         self._reset()
+

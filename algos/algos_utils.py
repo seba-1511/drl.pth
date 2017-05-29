@@ -7,6 +7,8 @@ from __future__ import print_function
 
 import torch as th
 
+EPSILON = 1e-8
+
 
 class LinearVF(object):
 
@@ -48,5 +50,5 @@ def discount(rewards, gamma):
         discounted.insert(0, R)
     return th.Tensor(discounted)
 
-
-
+def normalize(tensor):
+    return (tensor - th.mean(tensor)) / (th.std(tensor) + EPSILON)
