@@ -117,9 +117,23 @@ class TRPO(BaseAgent):
         inputs = [actions, states, means, logstds, advantages]
         surr_loss, surr_gradients = self._surrogate(*inputs) 
 
+        # CG, to be taken out
+        def fisher_vec_prod(vectors):
+            a_logstds = logstds.repeat(means.size(0), 1)
+            args = [actions, states, means, a_logstds]
+            res = self._grads_gvp(args + vectors)
+            return [r + (p * self.cg_damping) for r, p in zip(res, vectors)]
+
+        # END CG
+
         # At last, reset iteration statistics
         self._reset()
-        return [-g for g in surr_gradients]
+        for p, g in zip(self.parameters(), surr_gradients):
+            p.grad.data[:] = -g
+        return [g for g in surr_gradients]
+
+    def _grads_gvp(self, actions, states, means, logstds, vectors):
+        pass
 
     def _surrogate(self, actions, states, means, logstds, advantages):
         # Computes the gauss_log_prob on sampled data
