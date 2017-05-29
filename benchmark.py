@@ -15,6 +15,7 @@ from utils import get_setup
 def print_stats(name, ep_rewards, n_iters, timing, steps):
     print('*'*20, name + ' Statistics Iteration ', n_iters, '*'*20)
     print('Total Reward: ', ep_rewards)
+    print('Average Reward: ', ep_rewards/float(steps))
     print('Total Timing: ', timing)
     print('Total Steps: ', steps)
     print('\n')
@@ -42,13 +43,14 @@ def train(args, env, agent, opt, update, verbose=True):
             if agent.updatable():
                 update(args, env, agent, opt)
                 num_udpates += 1
+                if verbose:
+                    print_stats('Train', episode_reward, train_iter, time() - train_start, train_steps)
+                    print_stats('Overall', sum(train_rewards), train_iter, time() - train_start, train_steps)
 
             if done or agent.done():
                 break
             state = next_state
         agent.new_episode(done)
-        if verbose:
-            print_stats('Train', episode_reward, train_iter, time() - train_start, train_steps)
         train_rewards.append(episode_reward)
         episode_reward = 0.0
         train_iter += 1

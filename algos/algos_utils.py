@@ -6,9 +6,11 @@ from __future__ import print_function
 """
 
 import torch as th
+from math import log
 
 EPSILON = 1e-8
-PI = th.FloatTensor([2.141592654])
+PI = 2.141592654
+LOG2PI = log(2.0 * PI)
 
 
 class LinearVF(object):
@@ -57,6 +59,6 @@ def normalize(tensor):
 def gauss_log_prob(means, logstds, x):
     var = th.exp(2 * logstds)
     top = (-(x - means)**2)
-    bottom = (2*var) - 0.5 * th.log(2 * PI.resize_as_(var)) - logstds
+    bottom = (2*var) - 0.5 * LOG2PI - logstds
     gp = top / bottom 
     return th.sum(gp, dim=1)

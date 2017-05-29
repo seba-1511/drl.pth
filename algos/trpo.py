@@ -31,7 +31,7 @@ class TRPO(BaseAgent):
         self.baseline = baseline
 
         # Params
-        self.action_logstd_param = V(th.rand(1, self.policy.num_out))
+        self.action_logstd_param = V(th.rand(1, self.policy.num_out), requires_grad=True)
 
         # Book keeping
         self._reset()
@@ -49,7 +49,10 @@ class TRPO(BaseAgent):
 
     def parameters(self):
         # TODO: Include action_logstd_param
-        return self.policy.parameters()
+        for p in self.policy.parameters():
+            yield p
+        yield self.action_logstd_param
+        # return self.policy.parameters()
 
     def act(self, state):
         state = V(th.from_numpy(state).float().unsqueeze(0))
@@ -103,12 +106,12 @@ class TRPO(BaseAgent):
         self.baseline.learn(self.iter_states, returns)
 
         # Create variables
-        states = th.Tensor(self.iter_states)[0]
-        actions = th.Tensor(self.iter_actions)[0]
-        means = th.Tensor(self.iter_actions_mean)
+        states = V(th.Tensor(self.iter_states)[0])
+        actions = V(th.Tensor(self.iter_actions)[0])
+        means = V(th.Tensor(self.iter_actions_mean))
         means = means.view(states.size(0), -1)
-        logstds = th.Tensor(self.iter_actions_logstd).view(states.size(0), -1)
-        advantages = normalize(th.cat(advantages))
+        logstds = V(th.Tensor(self.iter_actions_logstd).view(states.size(0), -1))
+        advantages = V(normalize(th.cat(advantages)))
 
         # Start Computing the actual update
         inputs = [actions, states, means, logstds, advantages]
@@ -116,14 +119,22 @@ class TRPO(BaseAgent):
 
         # At last, reset iteration statistics
         self._reset()
+        return [-g for g in surr_gradients]
 
     def _surrogate(self, actions, states, means, logstds, advantages):
         # Computes the gauss_log_prob on sampled data
         old_log_p_n = gauss_log_prob(means, logstds, actions)
 
         # Computes the gauss_log_prob wrt current params
-        new_a_means = self.policy.forward(V(states))
+        new_a_means = self.policy.forward(states)
+        new_a_logstds = self.action_logstd_param.repeat(new_a_means.size(0), 1)
+        new_log_p_n = gauss_log_prob(new_a_means, new_a_logstds, actions)
 
-        loss = None
-        gradients = None
-        return loss, gradients
+        # Compute the actual surrogate
+        ratio = th.exp(new_log_p_n - old_log_p_n)
+        advantages = advantages.view(-1, 1)
+
+        surr = th.mean(ratio * advantages)
+        surr.backward()
+        gradients = [p.grad.data.clone() for p in self.parameters()]
+        return surr, gradients
