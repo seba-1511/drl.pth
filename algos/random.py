@@ -11,4 +11,4 @@ class Random(BaseAgent):
         self.output_size = policy.num_out
 
     def act(self, state):
-        return th.rand(self.output_size).numpy()
+        return th.rand(self.output_size).numpy(), None

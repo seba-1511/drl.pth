@@ -35,9 +35,9 @@ def train(args, env, agent, opt, update, verbose=True):
         state = env.reset()
         for path in range(args.max_path_length):
             train_steps += 1
-            action = agent.act(state)
+            action, action_info = agent.act(state)
             next_state, reward, done, _ = env.step(action)
-            agent.learn(state, action, reward, next_state, done)
+            agent.learn(state, action, reward, next_state, done, info=action_info)
             episode_reward += reward
             if agent.updatable():
                 update(args, env, agent, opt)
@@ -70,7 +70,7 @@ def test(args, env, agent):
         done = False
         while not done:
             test_steps += 1
-            action = agent.act(state)
+            action, _ = agent.act(state)
             state, reward, done, _ = env.step(action)
             test_rewards += reward
     test_end = time()

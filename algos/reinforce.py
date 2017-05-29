@@ -26,9 +26,9 @@ class Reinforce(BaseAgent):
     def act(self, state):
         state = V(th.from_numpy(state).float().unsqueeze(0))
         action = self.policy.forward(state)
-        return action.data.numpy()
+        return action.data.numpy(), None
 
-    def learn(self, state, action, reward, next_state, done):
+    def learn(self, state, action, reward, next_state, done, info=None):
         self.states.append(state)
         self.rewards.append(reward)
         if done:

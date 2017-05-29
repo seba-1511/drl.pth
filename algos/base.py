@@ -15,7 +15,7 @@ class BaseAgent(object):
         """ Returns an action to be taken. """
         raise NotImplementedError()
 
-    def learn(self, state=None, action=None, reward=None, next_state=None, done=None):
+    def learn(self, state=None, action=None, reward=None, next_state=None, done=None, info=None):
         """ Given (s, a, r, s') tuples, does the necessary to compute the update. """
         pass
 
