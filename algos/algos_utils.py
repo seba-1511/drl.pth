@@ -12,24 +12,32 @@ class LinearVF(object):
 
     def __init__(self, num_in, num_out):
         super(LinearVF, self).__init__()
-        self.W = th.zeros(num_in, num_out)
+        self.W = None
 
     def __call__(self, x):
+        if self.W is None:
+            return th.zeros(len(x), 1)
         x = th.Tensor(x)
         features = self.extract_features(x)
         return th.mm(features, self.W)
 
-    def extract_features(self, x):
-        return x
+    def extract_features(self, x, d=False):
+        x = th.Tensor(x)
+        x = x.view(x.size(0), -1)
+        l = len(x)
+        al = th.range(0, l - 1).view(-1, 1) / 100.0
+        out = th.cat([x, x**2, al, al**2, th.ones(l, 1)], dim=1)
+        return out
 
     def learn(self, states, rewards):
-        features = [self.extract_features(s) for s in states]
-        features = th.cat(features).t()
+        features = [self.extract_features(s, True) for s in states]
+        features = th.cat(features)
         rewards = th.cat(rewards)
         lamb = 2.0
         n_col = features.size(1)
-        self.W = th.gels(th.mm(features, features) + lamb * th.eye(n_col),
-                         th.mm(features, rewards))
+        A = th.mm(features.t(), features) + lamb * th.eye(n_col)
+        b = th.mv(features.t(), rewards)
+        self.W = th.gels(b, A)[0]
 
 
 def discount(rewards, gamma):

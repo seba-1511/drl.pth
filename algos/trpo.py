@@ -101,3 +101,8 @@ class TRPO(BaseAgent):
                 adv = r - b
             returns.append(r)
             advantages.append(adv)
+
+        # Fit baseline for next iter
+        self.baseline.learn(self.iter_states, returns)
+
+        self._reset()
