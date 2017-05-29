@@ -8,6 +8,7 @@ from __future__ import print_function
 import torch as th
 
 EPSILON = 1e-8
+PI = th.FloatTensor([2.141592654])
 
 
 class LinearVF(object):
@@ -27,7 +28,7 @@ class LinearVF(object):
         x = th.Tensor(x)
         x = x.view(x.size(0), -1)
         l = len(x)
-        al = th.range(0, l - 1).view(-1, 1) / 100.0
+        al = th.arange(0, l).view(-1, 1) / 100.0
         out = th.cat([x, x**2, al, al**2, th.ones(l, 1)], dim=1)
         return out
 
@@ -52,3 +53,10 @@ def discount(rewards, gamma):
 
 def normalize(tensor):
     return (tensor - th.mean(tensor)) / (th.std(tensor) + EPSILON)
+
+def gauss_log_prob(means, logstds, x):
+    var = th.exp(2 * logstds)
+    top = (-(x - means)**2)
+    bottom = (2*var) - 0.5 * th.log(2 * PI.resize_as_(var)) - logstds
+    gp = top / bottom 
+    return th.sum(gp, dim=1)

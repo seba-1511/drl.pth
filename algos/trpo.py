@@ -3,7 +3,7 @@
 import torch as th
 from torch.autograd import Variable as V
 from base import BaseAgent
-from algos_utils import discount, normalize, LinearVF, EPSILON
+from algos_utils import discount, normalize, LinearVF, EPSILON, PI, gauss_log_prob
 
 
 class TRPO(BaseAgent):
@@ -103,8 +103,8 @@ class TRPO(BaseAgent):
         self.baseline.learn(self.iter_states, returns)
 
         # Create variables
-        states = th.Tensor(self.iter_states)
-        actions = th.Tensor(self.iter_actions)
+        states = th.Tensor(self.iter_states)[0]
+        actions = th.Tensor(self.iter_actions)[0]
         means = th.Tensor(self.iter_actions_mean)
         means = means.view(states.size(0), -1)
         logstds = th.Tensor(self.iter_actions_logstd).view(states.size(0), -1)
@@ -112,8 +112,18 @@ class TRPO(BaseAgent):
 
         # Start Computing the actual update
         inputs = [actions, states, means, logstds, advantages]
-        # surr_loss, surr_gradients = self.surrogate(*inputs) 
+        surr_loss, surr_gradients = self._surrogate(*inputs) 
 
         # At last, reset iteration statistics
         self._reset()
 
+    def _surrogate(self, actions, states, means, logstds, advantages):
+        # Computes the gauss_log_prob on sampled data
+        old_log_p_n = gauss_log_prob(means, logstds, actions)
+
+        # Computes the gauss_log_prob wrt current params
+        new_a_means = self.policy.forward(V(states))
+
+        loss = None
+        gradients = None
+        return loss, gradients
