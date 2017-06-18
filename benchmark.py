@@ -57,7 +57,7 @@ def train(args, env, agent, opt, update, verbose=True):
     if verbose:
         reward_plot = Plot('Train Reward')
         reward_plot.plot(range(len(train_rewards)), train_rewards)
-        reward_plot.save('./train.pdf')
+        reward_plot.save('./plots/train.pdf')
         print ('num_udpates: ', num_udpates)
 
 

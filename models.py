@@ -32,3 +32,24 @@ class FCPolicy(nn.Module):
         x = self.params[-1](x)
         # x = F.softmax(self.params[-1](x))
         return x
+
+
+class LSTMPolicy(nn.Module):
+
+    def __init__(self, num_in, num_out, layers=(16, 16)):
+        self.num_in = num_in
+        self.num_out = num_out
+        self.layers = layers
+
+    def forward(self, x):
+        return x
+
+class AtariPolicy(nn.Module):
+
+    def __init__(self, num_in, num_out):
+        super(AtariPolicy, self).__init__()
+        self.num_in = num_in
+        self.num_out = num_out
+
+    def forward(self, x):
+        return x

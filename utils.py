@@ -9,10 +9,12 @@ import gym
 import mj_transfer
 import torch as th
 
+from functools import reduce
 from argparse import ArgumentParser
-from algos import A3C, Reinforce, TRPO, Random
-from models import FCPolicy
 from torch import optim
+
+from algos import A3C, Reinforce, TRPO, Random
+from models import FCPolicy, AtariPolicy, LSTMPolicy
 
 
 def numel(x):
@@ -34,7 +36,7 @@ def parse_args():
     parser.add_argument('--n_proc', dest='n_proc', type=int,
                         default=8, help='Number of processes (for async only)')
     parser.add_argument('--policy', dest='policy', type=str,
-                        default='FC', help='What kind of policy to use')
+                        default='fc', help='What kind of policy to use')
     parser.add_argument('--opt', dest='opt', type=str,
                         default='SGD', help='What kind of optimizer to use')
     parser.add_argument('--lr', dest='lr', type=float,
@@ -84,7 +86,9 @@ def get_algo(name):
 
 def get_policy(name):
     policies = {
-        'FC': FCPolicy,
+        'fc': FCPolicy,
+        'lstm': LSTMPolicy,
+        'atari': LSTMPolicy,
     }
     return policies[name]
 

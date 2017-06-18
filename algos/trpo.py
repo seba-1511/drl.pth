@@ -2,8 +2,10 @@
 
 import torch as th
 from torch.autograd import Variable as V
-from base import BaseAgent
-from algos_utils import discount, normalize, LinearVF, EPSILON, PI, gauss_log_prob
+
+from .base import BaseAgent
+from .algos_utils import (discount, normalize, LinearVF, EPSILON, PI, 
+                         gauss_log_prob, dot_not_flat)
 
 
 class TRPO(BaseAgent):
@@ -12,8 +14,9 @@ class TRPO(BaseAgent):
     Implementation of TRPO.
     """
 
-    def __init__(self, policy=None, optimizer=None, baseline=None, delta=0.01, gamma=0.99,
-                 update_frequency=15000, gae=True, gae_lam=0.97, cg_damping=0.1, 
+    def __init__(
+        self, policy=None, optimizer=None, baseline=None, delta=0.01, gamma=0.99,
+                 update_frequency=15000, gae=True, gae_lam=0.97, cg_damping=0.1,
                  momentum=0.9, *args, **kwargs):
         # Hyper params
         self.policy = policy
@@ -31,7 +34,8 @@ class TRPO(BaseAgent):
         self.baseline = baseline
 
         # Params
-        self.action_logstd_param = V(th.rand(1, self.policy.num_out), requires_grad=True)
+        self.action_logstd_param = V(
+            th.rand(1, self.policy.num_out), requires_grad=True)
 
         # Book keeping
         self._reset()
@@ -58,7 +62,8 @@ class TRPO(BaseAgent):
         state = V(th.from_numpy(state).float().unsqueeze(0))
         action_mean = self.policy.forward(state)
         action_logstd = self.action_logstd_param
-        action = action_mean.data + th.rand(action_mean.size()) * th.exp(self.action_logstd_param).data
+        action = action_mean.data + \
+            th.rand(action_mean.size()) * th.exp(self.action_logstd_param).data
         return action.tolist(), {'action_mean': action_mean.data.tolist(),
                                  'action_logstd': action_logstd.data.tolist()}
 
@@ -95,7 +100,8 @@ class TRPO(BaseAgent):
             if self.gae and len(b) > 0:
                 terminated = len(self.iter_done) != ep and self.iter_done[ep]
                 b1 = th.cat([b, th.Tensor([0.0 if terminated else b[-1]])])
-                deltas = th.Tensor(self.iter_rewards[ep]) + self.gamma * b1[1:] - b1[:-1]
+                deltas = th.Tensor(
+                    self.iter_rewards[ep]) + self.gamma * b1[1:] - b1[:-1]
                 adv = discount(list(deltas), self.gamma * self.gae_lam)
             else:
                 adv = r - b
@@ -115,25 +121,63 @@ class TRPO(BaseAgent):
 
         # Start Computing the actual update
         inputs = [actions, states, means, logstds, advantages]
-        surr_loss, surr_gradients = self._surrogate(*inputs) 
+        surr_loss = self._surrogate(*inputs)
+        surr_gradients = self._get_grad(surr_loss)
 
         # CG, to be taken out
         def fisher_vec_prod(vectors):
             a_logstds = logstds.repeat(means.size(0), 1)
             args = [actions, states, means, a_logstds]
-            res = self._grads_gvp(args + vectors)
+            res = self._grads_gvp(vectors, *args)
             return [r + (p * self.cg_damping) for r, p in zip(res, vectors)]
+
+        def conjgrad(fvp, grads, cg_iters=10, residual_tol=1e-10):
+            p = [V(g.clone()) for g in grads]
+            r = [V(g.clone()) for g in grads]
+            x = [V(th.zeros(g.size())) for g in grads]
+            rdotr = dot_not_flat(r, r)
+            for i in range(cg_iters):
+                z = fvp(p)
+                pdotz = sum([th.sum(a*b) for a, b in zip(p, z)])
+                v = rdotr / pdotz
+                x = [a + (v*b) for a, b in zip(x, p)]
+                r = [a - (v*b) for a, b in zip(r, z)]
+                newrdotr = sum([th.sum(g**2) for g in grads])
+                mu = newrdotr / rdotr
+                p = [a + mu * b for a, b in zip(r, p)]
+                rdotr = newrdotr
+                if rdotr < residual_tol:
+                    break
+            return x
+        grads = [-g for g in surr_gradients]
+        stepdir = conjgrad(fisher_vec_prod, grads)
+        shs = 0.5 * dot_not_flat(stepdir, fisher_vec_prod(stepdir))
+        assert(shs > 0.0)
 
         # END CG
 
         # At last, reset iteration statistics
         self._reset()
-        for p, g in zip(self.parameters(), surr_gradients):
-            p.grad.data[:] = -g
         return [g for g in surr_gradients]
 
-    def _grads_gvp(self, actions, states, means, logstds, vectors):
-        pass
+    def _grads_gvp(self, tangents, actions, states, means, logstds):
+        new_a_means = self.policy.forward(states)
+        new_a_logstds = self.action_logstd_param.repeat(new_a_means.size(0), 1)
+        # Need to repackage these vars to stop gradient
+        stop_means = V(new_a_means.data.clone())
+        stop_logstds = V(new_a_logstds.data.clone())
+
+        # KL with yourself, where first argument is treated as constant.
+        var = th.exp(2.0 * new_a_logstds)
+        stop_var = th.exp(2.0 * stop_logstds)
+        temp = (stop_var + (stop_means - new_a_means)**2) / (2.0 * var)
+        kl_first = th.mean(new_a_logstds - stop_logstds + temp - 0.5)
+        grads_kl_first = [g for g in self._get_grad(kl_first)]
+
+        # TODO: The problem here is that you need to take the gradient (l.177) of a gradient (l.174) which is poorly supported in PyTorch.
+
+        gvp = [th.sum(g * t) for g, t in zip(grads_kl_first, tangents)]
+        return self._get_grad(gvp)
 
     def _surrogate(self, actions, states, means, logstds, advantages):
         # Computes the gauss_log_prob on sampled data
@@ -149,6 +193,15 @@ class TRPO(BaseAgent):
         advantages = advantages.view(-1, 1)
 
         surr = th.mean(ratio * advantages)
-        surr.backward()
+        return surr
+
+    def _get_grad(self, value):
+        for p in self.parameters():
+            if hasattr(p.grad, 'data'):
+                p.grad.data.fill_(0.0)
+        if isinstance(value, list):
+            value = sum(value)
+        value.backward(create_graph=True, retain_variables=True)
         gradients = [p.grad.data.clone() for p in self.parameters()]
-        return surr, gradients
+        return gradients
+

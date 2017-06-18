@@ -62,3 +62,7 @@ def gauss_log_prob(means, logstds, x):
     bottom = (2*var) - 0.5 * LOG2PI - logstds
     gp = top / bottom 
     return th.sum(gp, dim=1)
+
+def dot_not_flat(A, B):
+    """Equivalent of flattening matrices A, B and doing a vector product."""
+    return sum([th.sum(a*b) for a, b in zip(A, B)])

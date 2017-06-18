@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-from .base import BaseAgent
-
 import torch as th
 from torch.autograd import Variable as V
+
+from .base import BaseAgent
 
 
 class A3C(BaseAgent):

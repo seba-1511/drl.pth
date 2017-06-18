@@ -2,7 +2,8 @@
 
 import torch as th
 from torch.autograd import Variable as V
-from base import BaseAgent
+
+from .base import BaseAgent
 
 
 class Random(BaseAgent):

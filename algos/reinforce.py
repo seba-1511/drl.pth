@@ -3,7 +3,7 @@
 import torch as th
 from torch.autograd import Variable as V
 
-from base import BaseAgent
+from .base import BaseAgent
 
 
 class Reinforce(BaseAgent):
@@ -36,7 +36,7 @@ class Reinforce(BaseAgent):
 
     def get_update(self):
         R = 0
-        for s, r in reversed(zip(self.states, self.rewards)):
+        for s, r in reversed(list(zip(self.states, self.rewards))):
             R = r + self.gamma * R
             s = V(th.from_numpy(s).float().unsqueeze(0))
             preds = self.policy.forward(s)
