@@ -9,20 +9,15 @@ import gym
 import mj_transfer
 import torch as th
 
+from collections import Iterable
 from functools import reduce
 from argparse import ArgumentParser
 from torch import optim
 
 from algos import A3C, Reinforce, TRPO, Random
 from models import FCPolicy, AtariPolicy, LSTMPolicy
+from env_converter import EnvConverter, numel
 
-
-def numel(x):
-    if hasattr(x, 'shape'):
-        return reduce(lambda x, y: x * y, x.shape)
-    if hasattr(x, 'size'):
-        return reduce(lambda x, y: x * y, x.size)
-    return x.n
 
 def parse_args():
     # Parse arguments
@@ -88,7 +83,7 @@ def get_policy(name):
     policies = {
         'fc': FCPolicy,
         'lstm': LSTMPolicy,
-        'atari': LSTMPolicy,
+        'atari': AtariPolicy,
     }
     return policies[name]
 
@@ -102,15 +97,17 @@ def get_opt(name):
     }
     return policies[name]
 
+
 def get_setup(seed_offset=0):
     args = parse_args()
     args.seed += seed_offset
     env = gym.make(args.env)
+    env = EnvConverter(env)
     env.seed(args.seed)
     th.manual_seed(args.seed)
-    policy = get_policy(args.policy)(numel(env.observation_space),
-                                     numel(env.action_space), layers=(64, 64))
-    agent = get_algo(args.algo)(policy=policy, gamma=args.gamma, 
+    policy = get_policy(args.policy)(env.state_size,
+                                     env.action_size, layers=(64, 64))
+    agent = get_algo(args.algo)(policy=policy, gamma=args.gamma,
                                 update_frequency=args.timesteps_per_batch)
     opt = None
     if agent.parameters() is not None:
