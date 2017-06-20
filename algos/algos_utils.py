@@ -49,7 +49,7 @@ def discount(rewards, gamma):
     R = 0
     discounted = []
     for r in reversed(rewards):
-        R = R + gamma * r
+        R = r + gamma * R
         discounted.insert(0, R)
     return th.Tensor(discounted)
 

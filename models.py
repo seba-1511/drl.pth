@@ -3,14 +3,34 @@
 import torch as th
 from torch import nn
 from torch.nn import functional as F
+from torch.autograd import Variable as V
 
 
-class FCPolicy(nn.Module):
+class StochasticContinuousPolicy(nn.Module):
+
+    """
+    Transforms a model into a stochastic continuous policy, with sampling
+    from the logstd.
+
+    `forward` returns a tuple, the mean and the logstd.
+    """
+
+    def __init__(self, net):
+        super(StochasticContinuousPolicy, self).__init__()
+        self.net = net
+        self.logstd = nn.Parameter(0.1 * th.rand(net.num_out))
+
+    def forward(self, x):
+        x = self.net(x)
+        return x, self.logstd
+
+
+class FC(nn.Module):
 
     """ Policy implemented as a fully-connected network. """
 
     def __init__(self, num_in, num_out, layers=(16, 16), activation=None):
-        super(FCPolicy, self).__init__()
+        super(FC, self).__init__()
         params = [nn.Linear(num_in, layers[0])]
         for i, l in enumerate(layers[1:]):
             layer = nn.Linear(layers[i - 1], l)
@@ -34,9 +54,10 @@ class FCPolicy(nn.Module):
         return x
 
 
-class LSTMPolicy(nn.Module):
+class LSTM(nn.Module):
 
     def __init__(self, num_in, num_out, layers=(16, 16)):
+        super(LSTM, self).__init__()
         self.num_in = num_in
         self.num_out = num_out
         self.layers = layers
@@ -44,10 +65,10 @@ class LSTMPolicy(nn.Module):
     def forward(self, x):
         return x
 
-class AtariPolicy(nn.Module):
+class Atari(nn.Module):
 
     def __init__(self, num_in, num_out):
-        super(AtariPolicy, self).__init__()
+        super(Atari, self).__init__()
         self.num_in = num_in
         self.num_out = num_out
 

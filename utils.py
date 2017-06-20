@@ -15,7 +15,7 @@ from argparse import ArgumentParser
 from torch import optim
 
 from algos import A3C, Reinforce, TRPO, Random
-from models import FCPolicy, AtariPolicy, LSTMPolicy
+from models import FC, Atari, LSTM, StochasticContinuousPolicy
 from env_converter import EnvConverter, numel
 
 
@@ -46,7 +46,7 @@ def parse_args():
                         default=100, help='Number of episodes to test on.')
     parser.add_argument('--seed', dest='seed', type=int,
                         default=1234, help='Random generator seed')
-    parser.add_argument('--timesteps_per_batch', dest='timesteps_per_batch', type=int,
+    parser.add_argument('--update_frequency', dest='update_frequency', type=int,
                         default=1500, help='Number of steps before updating parameters.')
     parser.add_argument('--max_path_length', dest='max_path_length', type=int,
                         default=15000, help='Max length for a trajectory/episode.')
@@ -81,9 +81,9 @@ def get_algo(name):
 
 def get_policy(name):
     policies = {
-        'fc': FCPolicy,
-        'lstm': LSTMPolicy,
-        'atari': AtariPolicy,
+        'fc': FC,
+        'lstm': LSTM,
+        'atari': Atari,
     }
     return policies[name]
 
@@ -105,10 +105,11 @@ def get_setup(seed_offset=0):
     env = EnvConverter(env)
     env.seed(args.seed)
     th.manual_seed(args.seed)
-    policy = get_policy(args.policy)(env.state_size,
+    model = get_policy(args.policy)(env.state_size,
                                      env.action_size, layers=(64, 64))
+    policy = StochasticContinuousPolicy(model)
     agent = get_algo(args.algo)(policy=policy, gamma=args.gamma,
-                                update_frequency=args.timesteps_per_batch)
+                                update_frequency=args.update_frequency)
     opt = None
     if agent.parameters() is not None:
         opt = get_opt(args.opt)(agent.parameters(), lr=args.lr)
