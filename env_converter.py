@@ -17,6 +17,14 @@ def numel(x):
     return x.n
 
 
+def clip(val, minval, maxval):
+    if val < minval:
+        return minval
+    if val > maxval:
+        return maxval
+    return val
+
+
 class EnvConverter(object):
 
     """
@@ -49,7 +57,21 @@ class EnvConverter(object):
     def step(self, action):
         if self.is_discrete:
             action = self._convert(action)
+        else:
+            action = self._clip(action)
         return self.env.step(action)
+
+    def _clip(self, action):
+        maxs = self.env.action_space.high
+        mins = self.env.action_space.low
+        if isinstance(action, np.ndarray):
+            np.clip(action, mins, maxs, out=action)
+        elif isinstance(action, list):
+            for i in range(len(action)):
+                action[i] = clip(action[i], mins[i], maxs[i])
+        else:
+            action = clip(action, mins[0], maxs[0])
+        return action
 
     def _convert(self, action):
         if isinstance(action, np.ndarray):

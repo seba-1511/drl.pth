@@ -18,7 +18,7 @@ class StochasticContinuousPolicy(nn.Module):
     def __init__(self, net):
         super(StochasticContinuousPolicy, self).__init__()
         self.net = net
-        self.logstd = nn.Parameter(0.1 * th.rand(net.num_out))
+        self.logstd = nn.Parameter(0.01 * th.rand(net.num_out))
 
     def forward(self, x):
         x = self.net(x)
