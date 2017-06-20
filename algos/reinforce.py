@@ -35,6 +35,7 @@ class Reinforce(BaseAgent):
         std = th.exp(logstd)
         entropy = V(0.5 * (1.0 + self.log2pi)) + logstd
         action = th.normal(mean, std)
+        # action = mean + std * V(th.normal(th.zeros(mean.size()), 1.0))
         return action.data.numpy(), (action, entropy)
 
     def learn(self, state, action, reward, next_state, done, info=None):
@@ -58,13 +59,11 @@ class Reinforce(BaseAgent):
                 episode_loss = 0.0
                 rewards = discount(rewards, self.gamma)
                 rewards = (rewards - rewards.mean()) / (rewards.std() + EPSILON)
-                # iterator = reversed(list(zip(actions, rewards, entropies)))
                 iterator = list(zip(actions, rewards, entropies))
                 for action, reward, entropy in iterator:
-                    # R = reward + self.gamma * R
+                    action.reinforce(reward)
                     # R = th.Tensor([reward])
-                    action.reinforce(reward + (0.0001 * entropy).data.sum())
-                    # episode_loss -= (th.log(action) * V(R)).sum() - (0.0001 * entropy).sum()
+                    # episode_loss -= (th.log(action) * V(R)).sum()
                 # episode_loss /= len(actions)
                 # loss += episode_loss
                 backward(actions, [None for _ in actions])
@@ -73,6 +72,8 @@ class Reinforce(BaseAgent):
         return [p.grad.clone() for p in self.parameters()]
 
     def updatable(self):
+        if len(self.actions) > 1:
+            return True
         if self.steps >= self.update_frequency:
             return True
         return False

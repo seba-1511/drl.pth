@@ -35,29 +35,26 @@ def train(args, env, agent, opt, update, verbose=True):
         state = env.reset()
         episode_reward = 0.0
         for path in range(args.max_path_length):
+
+            if agent.updatable():
+                update(args, env, agent, opt)
+                num_updates += 1
+                train_rewards.append(sum(update_rewards))
+                if verbose:
+                    print_stats('Train', update_rewards, num_updates, time() - train_start, train_steps)
+
             train_steps += 1
             action, action_info = agent.act(state)
             next_state, reward, done, _ = env.step(action)
             agent.learn(state, action, reward, next_state, done, info=action_info)
             episode_reward += reward
-            # if agent.updatable():
-                # update(args, env, agent, opt)
-                # num_updates += 1
-                # train_rewards.append(sum(update_rewards))
-                # if verbose:
-                    # print_stats('Train', update_rewards, num_updates, time() - train_start, train_steps)
 
             if done or agent.done():
                 break
             state = next_state
-        update(args, env, agent, opt)
-        num_updates += 1
-        train_rewards.append(sum(update_rewards))
-        if verbose:
-            print_stats('Train', update_rewards, num_updates, time() - train_start, train_steps)
         agent.new_episode(done)
         update_rewards.append(episode_reward)
-    # Plot the train_rewards, so as to see how they evolve through time.
+    # Plot the train_rewards
     return train_rewards
 
 

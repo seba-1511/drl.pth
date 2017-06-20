@@ -50,7 +50,7 @@ class FC(nn.Module):
         for l in self.params[:-1]:
             x = self.activation(l(x))
         x = self.params[-1](x)
-        # x = F.softmax(self.params[-1](x))
+        # x = F.softmax(x)
         return x
 
 

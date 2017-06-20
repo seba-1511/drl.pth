@@ -106,7 +106,8 @@ def get_setup(seed_offset=0):
     env.seed(args.seed)
     th.manual_seed(args.seed)
     model = get_policy(args.policy)(env.state_size,
-                                     env.action_size, layers=(64, 64))
+                                     env.action_size, layers=(128, ))
+                                     # env.action_size, layers=(64, 64))
     policy = StochasticContinuousPolicy(model)
     agent = get_algo(args.algo)(policy=policy, gamma=args.gamma,
                                 update_frequency=args.update_frequency)
