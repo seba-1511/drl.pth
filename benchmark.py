@@ -73,7 +73,7 @@ def test(args, env, agent):
             action, _ = agent.act(state)
             state, reward, done, _ = env.step(action)
             iter_rewards += reward
-        test_rewards(iter_rewards)
+        test_rewards.append(iter_rewards)
     test_end = time()
     if args.record:
         pass
