@@ -15,14 +15,18 @@ class StochasticContinuousPolicy(nn.Module):
     `forward` returns a tuple, the mean and the logstd.
     """
 
-    def __init__(self, net):
+    def __init__(self, model):
         super(StochasticContinuousPolicy, self).__init__()
-        self.net = net
-        self.logstd = nn.Parameter(0.01 * th.rand(net.num_out))
+        self.model = model
+        self.logstd = nn.Parameter(0.01 * th.rand(model.num_out))
 
     def forward(self, x):
-        x = self.net(x)
+        x = self.model(x)
         return x, self.logstd
+
+    def reset(self):
+        """ Resets the state of the current policy. """
+        self.model.reset()
 
 
 class FC(nn.Module):
@@ -53,6 +57,9 @@ class FC(nn.Module):
         # x = F.softmax(x)
         return x
 
+    def reset(self):
+        pass
+
 
 class LSTM(nn.Module):
 
@@ -61,9 +68,31 @@ class LSTM(nn.Module):
         self.num_in = num_in
         self.num_out = num_out
         self.layers = layers
+        self.lstms = [nn.LSTM(num_in, layers[0])]
+        self.hiddens = [(V(th.rand(1, 1, layers[0])), V(th.rand(1, 1, layers[0])))]
+        for i, l in enumerate(layers[1:]):
+            self.lstms.append(nn.LSTM(layers[i-1], layers[i]))
+            self.hiddens.append(
+                    (V(th.rand(1, 1, layers[i])),
+                     V(th.rand(1, 1, layers[i])))
+                    )
+        self.lstms.append(nn.LSTM(layers[-1], num_out))
+        self.hiddens.append(
+                (V(th.rand(1, 1, num_out)),
+                 V(th.rand(1, 1, num_out)))
+                )
 
     def forward(self, x):
+        for lstm, hidden in zip(self.lstms, self.hiddens):
+            x, new_hidden = lstm(x.view(1, 1, -1), hidden)
+            hidden[0].data.copy_(new_hidden[0].data)
+            hidden[1].data.copy_(new_hidden[1].data)
         return x
+
+    def reset(self):
+        print('asdf')
+        self.hiddens = [(V(th.rand(h[0].size())), 
+                         V(th.rand(h[1].size()))) for h in self.hiddens]
 
 class Atari(nn.Module):
 

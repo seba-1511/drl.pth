@@ -49,6 +49,7 @@ class Reinforce(BaseAgent):
         self.rewards.append([])
         self.actions.append([])
         self.entropies.append([])
+        self.policy.reset()
 
     def get_update(self):
         loss = 0.0
