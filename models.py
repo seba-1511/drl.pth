@@ -90,7 +90,6 @@ class LSTM(nn.Module):
         return x
 
     def reset(self):
-        print('asdf')
         self.hiddens = [(V(th.rand(h[0].size())), 
                          V(th.rand(h[1].size()))) for h in self.hiddens]
 
