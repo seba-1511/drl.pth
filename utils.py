@@ -15,8 +15,8 @@ from argparse import ArgumentParser
 from torch import optim
 
 from algos import A3C, Reinforce, TRPO, Random
-from models import FC, Atari, LSTM, StochasticContinuousPolicy, DropoutStochasticPolicy
-from env_converter import EnvConverter, FullEnvConverter, numel
+from models import FC, LSTM, StochasticPolicy, DropoutPolicy
+from env_converter import SingleActionEnvConverter, SoftmaxEnvConverter, numel
 
 
 def parse_args():
@@ -34,6 +34,8 @@ def parse_args():
                         default='fc', help='What kind of policy to use')
     parser.add_argument('--opt', dest='opt', type=str,
                         default='SGD', help='What kind of optimizer to use')
+    parser.add_argument('--dropout', dest='dropout', type=float,
+                        default=0.0, help='Dropout rate between layers')
     parser.add_argument('--lr', dest='lr', type=float,
                         default=0.01, help='The learning rate')
     parser.add_argument('--filter', dest='filter', type=bool,
@@ -64,6 +66,8 @@ def parse_args():
                         default=0.99, help='Discount factor.')
     parser.add_argument('--record', dest='record', type=bool,
                         default=False, help='Whether to record videos at test time.')
+    parser.add_argument('--render', dest='render', type=bool,
+                        default=False, help='Whether to render display at train time.')
     parser.add_argument('--upload', dest='upload', type=bool,
                         default=False, help='Whether to upload results to the OpenAI servers.')
     return parser.parse_args()
@@ -83,7 +87,6 @@ def get_policy(name):
     policies = {
         'fc': FC,
         'lstm': LSTM,
-        'atari': Atari,
     }
     return policies[name]
 
@@ -102,15 +105,18 @@ def get_setup(seed_offset=0):
     args = parse_args()
     args.seed += seed_offset
     env = gym.make(args.env)
-    env = FullEnvConverter(env)
+    env = SoftmaxEnvConverter(env)
     env.seed(args.seed)
     th.manual_seed(args.seed)
     model = get_policy(args.policy)(env.state_size,
-                                    env.action_size, layers=(64, 64))
+                                    env.action_size, layer_sizes=(64, 64),
+                                    dropout=args.dropout)
+    # policy = DropoutStochasticPolicy(model)
     policy = StochasticContinuousPolicy(model)
+    policy.train()
     agent = get_algo(args.algo)(policy=policy, gamma=args.gamma,
                                 update_frequency=args.update_frequency)
     opt = None
     if agent.parameters() is not None:
-        opt = get_opt(args.opt)(agent.parameters(), lr=args.lr, momentum=-0.3)
+        opt = get_opt(args.opt)(agent.parameters(), lr=args.lr)
     return args, env, agent, opt

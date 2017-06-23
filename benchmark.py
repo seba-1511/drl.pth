@@ -45,6 +45,8 @@ def train(args, env, agent, opt, update, verbose=True):
 
             train_steps += 1
             action, action_info = agent.act(state)
+            if args.render:
+                env.render()
             next_state, reward, done, _ = env.step(action)
             agent.learn(state, action, reward, next_state, done, info=action_info)
             episode_reward += reward

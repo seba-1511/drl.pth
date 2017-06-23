@@ -26,7 +26,12 @@ def clip(val, minval, maxval):
     return val
 
 
-class EnvConverter(object):
+def softmax(x):
+    act = np.exp(x - np.max(x))
+    return act / act.sum()
+
+
+class SingleActionEnvConverter(object):
 
     """
     A `gym.Env` wrapper to enable continuous agents to work in discrete
@@ -94,17 +99,17 @@ class EnvConverter(object):
         return int(action)
 
 
-class FullEnvConverter(object):
+class SoftmaxEnvConverter(object):
 
     """
     A `gym.Env` wrapper to enable continuous agents to work in discrete
     worlds.
 
-    Each discrete action is assigned a dimension, and the execute action 
-    is sampled uniformly according to the weights given by the policy.
+    Each discrete action is assigned a dimension, and the executed action 
+    is sampled according to a softmax on the weights given by the policy.
 
     Roughly: 
-    action = choice(num_actions, p=normalize(input))
+    action = choice(num_actions, p=softmax(input))
     """
 
     def __init__(self, env, min_prob=0.01, max_prob=0.01):
@@ -154,6 +159,4 @@ class FullEnvConverter(object):
         if isinstance(action, int):
             return action
         action = np.array(action).reshape(-1)
-        action += np.max(np.abs(action))
-        action /= sum(action)
-        return choice(self.actions, p=action)
+        return int(choice(self.actions, p=softmax(action)))
