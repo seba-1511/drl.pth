@@ -15,7 +15,7 @@ from argparse import ArgumentParser
 from torch import optim
 
 from algos import A3C, Reinforce, TRPO, Random
-from models import FC, Atari, LSTM, StochasticContinuousPolicy
+from models import FC, Atari, LSTM, StochasticContinuousPolicy, DropoutStochasticPolicy
 from env_converter import EnvConverter, FullEnvConverter, numel
 
 

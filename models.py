@@ -29,6 +29,22 @@ class StochasticContinuousPolicy(nn.Module):
         self.model.reset()
 
 
+class DropoutStochasticPolicy(nn.Module):
+
+    def __init__(self, model, num_samples=10):
+        super(DropoutStochasticPolicy, self).__init__()
+        self.model = model
+        self.num_samples = num_samples
+
+    def forward(self, x):
+        samples = []
+        for _ in range(self.num_samples):
+            samples.append(self.net(x))
+        samples = th.cat(samples)
+        print(samples.size)
+        return th.mean(samples), th.std(samples)
+
+
 class FC(nn.Module):
 
     """ Policy implemented as a fully-connected network. """
