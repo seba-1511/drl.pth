@@ -16,7 +16,7 @@ from torch import optim
 
 from algos import A3C, Reinforce, TRPO, Random
 from models import FC, Atari, LSTM, StochasticContinuousPolicy
-from env_converter import EnvConverter, numel
+from env_converter import EnvConverter, FullEnvConverter, numel
 
 
 def parse_args():
@@ -102,7 +102,7 @@ def get_setup(seed_offset=0):
     args = parse_args()
     args.seed += seed_offset
     env = gym.make(args.env)
-    env = EnvConverter(env)
+    env = FullEnvConverter(env)
     env.seed(args.seed)
     th.manual_seed(args.seed)
     model = get_policy(args.policy)(env.state_size,

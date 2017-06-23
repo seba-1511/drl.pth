@@ -1,7 +1,7 @@
 
 ALGO=reinforce
 ENV=CartPole-v0
-ENV=InvertedDoublePendulum-v1
+#ENV=InvertedDoublePendulum-v1
 N_ITER=100
 TEST_N_ITER=100
 OPT=RMSprop
