@@ -9,7 +9,7 @@ from .base import BaseAgent
 from .algos_utils import discount, normalize
 
 
-class A3C(BaseAgent):
+class CriticReinforce(BaseAgent):
 
     def __init__(self, policy=None, baseline=0.5, gamma=0.99, update_frequency=1000, entropy_weight=0.0001):
         self.policy = policy

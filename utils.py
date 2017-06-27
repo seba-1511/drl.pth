@@ -14,9 +14,10 @@ from functools import reduce
 from argparse import ArgumentParser
 from torch import optim
 
-from algos import A3C, Reinforce, TRPO, Random
-from models import FC, LSTM, StochasticPolicy, DropoutPolicy
-from env_converter import SingleActionEnvConverter, SoftmaxEnvConverter, numel
+from algos import A3C, Reinforce, CriticReinforce, TRPO, Random
+from models import FC, LSTM
+from policies import StochasticPolicy, DropoutPolicy
+from env_converter import SingleActionEnvConverter, MultiActionEnvConverter, SoftmaxEnvConverter, numel
 
 
 def parse_args():
@@ -76,6 +77,7 @@ def parse_args():
 def get_algo(name):
     algos = {
         'reinforce': Reinforce,
+        'creinforce': CriticReinforce,
         'trpo': TRPO,
         'a3c': A3C,
         'random': Random,
@@ -105,14 +107,18 @@ def get_setup(seed_offset=0):
     args = parse_args()
     args.seed += seed_offset
     env = gym.make(args.env)
-    env = SoftmaxEnvConverter(env)
+    env = MultiActionEnvConverter(env)
     env.seed(args.seed)
     th.manual_seed(args.seed)
     model = get_policy(args.policy)(env.state_size,
-                                    env.action_size, layer_sizes=(64, 64),
+                                    env.action_size, layer_sizes=(8, 8),
+                                    # env.action_size, layer_sizes=(64, 64),
+                                    # env.action_size, layer_sizes=(16, 16),
                                     dropout=args.dropout)
-    # policy = DropoutStochasticPolicy(model)
-    policy = StochasticContinuousPolicy(model)
+    if args.dropout > 0.0:
+        policy = DropoutPolicy(model)
+    else:
+        policy = StochasticPolicy(model)
     policy.train()
     agent = get_algo(args.algo)(policy=policy, gamma=args.gamma,
                                 update_frequency=args.update_frequency)

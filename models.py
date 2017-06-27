@@ -7,68 +7,58 @@ from torch.autograd import Variable as V
 
 from functools import reduce
 
-
-class StochasticPolicy(nn.Module):
+class BasePolicyModel(nn.Module):
 
     """
-    Transforms a model into a stochastic continuous policy, with sampling
-    from the logstd.
-
-    `forward` returns a tuple, the mean and the logstd.
+    This class provides the architecure for models to be used by policies.
     """
+    def __init__(self):
+        super(BasePolicyModel, self).__init__()
+        self.critic_state = None # The state that should be fed to the critic
 
-    def __init__(self, model):
-        super(StochasticContinuousPolicy, self).__init__()
-        self.model = model
-        self.params = nn.ParameterList(list(model.parameters()))
-        self.logstd = nn.Parameter(0.01 * th.rand(model.num_out))
-        self.params.extend([self.logstd, ])
+    def _track_params(self, layers):
+        """
+        Optional helper function: given a list of layers, adds their parameters
+        to the current model.
+        """
+        self.params = []
+        for l in layers:
+            self.params.extend(list(l.parameters()))
+        self.params = nn.ParameterList(self.params)
+
 
     def forward(self, x):
-        x = self.model(x)
-        return x, self.logstd
+        """
+        The standard forward pass of a nn.Module.
 
-    def reset(self):
-        """ Resets the state of the current policy. """
-        self.model.reset_state()
+        Returns: the final activation.
+        """
+        pass
 
+    def forgetful_forward(self, x):
+        """
+        A forward pass that uses but doesn't modify the state of the model. 
+        E.g: forward of a RNN, but the hidden states stay untouched.
 
-class DropoutPolicy(nn.Module):
+        Returns: (final activation, new state of the model)
+        """
+        pass
 
-    """
-    Transforms a model into a stochastic continuous policy, with sampling
-    from the logstd.
+    def reset_state(self):
+        """
+        Resets the state of the model. E.g: re-initialize the hidden layers of
+        an RNN.
+        """
+        pass
 
-    `forward` returns a tuple, the mean and the logstd which are obtained by 
-    forwarding through sampled dropout masks.
-    """
+    def set_state(self, state):
+        """
 
-    def __init__(self, model, num_samples=10):
-        super(DropoutStochasticPolicy, self).__init__()
-        self.model = model
-        self.params = nn.ParameterList(list(model.parameters()))
-        self.num_samples = num_samples
-
-    def forward(self, x):
-        samples = []
-        states = []
-        # TODO: avoid the for loop by creating a batch
-        for _ in range(self.num_samples):
-            out, state = self.model.forgetful_forward(x)
-            samples.append(out)
-            states.append(state)
-        samples = th.cat(samples, 0)
-        state = reduce(lambda x, y: [a + b for a, b in zip(x, y)], states[1:], states[0])
-        state = [[val / self.num_samples for val in s] for s in state]
-        self.model.set_state(state)
-        mu, std = th.mean(samples, 0), th.std(samples, 0)
-        return mu, th.log(std)
-    
-    def reset(self):
-        self.model.reset_state()
+        """
+        pass
 
 
-class FC(nn.Module):
+class FC(BasePolicyModel):
 
     """ Policy implemented as a fully-connected network. """
 
@@ -90,16 +80,11 @@ class FC(nn.Module):
         self._track_params(layers)
         print('Optimizing ', len(list(self.parameters())), ' parameters')
 
-    def _track_params(self, layers):
-        self.params = []
-        for l in layers:
-            self.params.extend(list(l.parameters()))
-        self.params = nn.ParameterList(self.params)
-
     def forward(self, x):
         for l in self.layers[:-1]:
             x = self.activation(l(x))
             if self.dropout > 0.0:
+                self.critic_state = x
                 x = F.dropout(x, p=self.dropout, training=True)
         x = self.layers[-1](x)
         return x
@@ -107,14 +92,8 @@ class FC(nn.Module):
     def forgetful_forward(self, x):
         return self.forward(x), [[0.0, ], ]
 
-    def set_state(self, state):
-        pass
 
-    def reset_state(self):
-        pass
-
-
-class LSTM(nn.Module):
+class LSTM(BasePolicyModel):
 
     def __init__(self, num_in, num_out, layer_sizes=(16, 16), dropout=0.0):
         super(LSTM, self).__init__()
@@ -136,23 +115,18 @@ class LSTM(nn.Module):
         self._track_params(self.lstms)
         print('Optimizing ', len(list(self.parameters())), ' parameters')
 
-    def _track_params(self, layers):
-        self.params = []
-        for l in layers:
-            self.params.extend(list(l.parameters()))
-        self.params = nn.ParameterList(self.params)
-
     def forward(self, x):
         for lstm, hidden in zip(self.lstms[:-1], self.hiddens[:-1]):
             x, new_hidden = lstm(x.view(1, 1, -1), hidden)
             x = F.tanh(x)
+            self.critic_state = x
             if self.dropout > 0.0:
                 x = F.dropout(x, p=self.dropout, training=True)
             hidden[0].data.copy_(new_hidden[0].data)
             hidden[1].data.copy_(new_hidden[1].data)
         x, new_hidden = self.lstms[-1](x.view(1, 1, -1), self.hiddens[-1])
-        self.hiddens[0].data.copy_(new_hidden[0].data)
-        self.hiddens[1].data.copy_(new_hidden[1].data)
+        self.hiddens[-1][0].data.copy_(new_hidden[0].data)
+        self.hiddens[-1][1].data.copy_(new_hidden[1].data)
         return x
 
     def forgetful_forward(self, x):
@@ -160,6 +134,7 @@ class LSTM(nn.Module):
         for lstm, hidden in zip(self.lstms[:-1], self.hiddens[:-1]):
             x, new_hidden = lstm(x.view(1, 1, -1), hidden)
             x = F.tanh(x)
+            self.critic_state = x
             if self.dropout > 0.0:
                 x = F.dropout(x, p=self.dropout, training=True)
             hiddens.append(new_hidden)
