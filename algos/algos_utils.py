@@ -53,6 +53,17 @@ def discount(rewards, gamma):
         discounted.insert(0, R)
     return th.Tensor(discounted)
 
+def generalized_advantage_estimations(rewards, critics, gamma, tau):
+    gaes = [0.0, ]
+    gae = 0.0
+    prev_c = 0.0
+    for r, c in zip(rewards, critics):
+        delta = r + gamma * prev_c - c
+        gae = gae * gamma * tau + delta
+        gaes.insert(0, gae)
+        prev_c = c
+    return gaes
+
 def normalize(tensor):
     return (tensor - th.mean(tensor)) / (th.std(tensor) + EPSILON)
 

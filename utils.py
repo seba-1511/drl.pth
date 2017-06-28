@@ -5,6 +5,7 @@ from __future__ import print_function
     Some utility functions.
 """
 
+import numpy as np
 import gym
 import mj_transfer
 import torch as th
@@ -15,7 +16,7 @@ from argparse import ArgumentParser
 from torch import optim
 
 from algos import A3C, Reinforce, ActorCriticReinforce, TRPO, Random
-from models import FC, LSTM
+from models import FC, LSTM, Atari
 from policies import StochasticPolicy, DropoutPolicy
 from env_converter import SingleActionEnvConverter, MultiActionEnvConverter, SoftmaxEnvConverter, StateNormalizer, numel
 
@@ -39,8 +40,6 @@ def parse_args():
                         default=0.0, help='Dropout rate between layers')
     parser.add_argument('--lr', dest='lr', type=float,
                         default=0.01, help='The learning rate')
-    parser.add_argument('--filter', dest='filter', type=bool,
-                        default=True, help='Whether to filter the environment\'s states.')
     parser.add_argument('--solved', dest='solved', type=float,
                         default=1000.0, help='Threshold at which the environment is considered solved.')
     parser.add_argument('--n_iter', dest='n_iter', type=int,
@@ -89,6 +88,7 @@ def get_policy(name):
     policies = {
         'fc': FC,
         'lstm': LSTM,
+        'atari': Atari,
     }
     return policies[name]
 
@@ -110,11 +110,12 @@ def get_setup(seed_offset=0):
     env = MultiActionEnvConverter(env)
     env = StateNormalizer(env)
     env.seed(args.seed)
+    np.random.seed(args.seed)
     th.manual_seed(args.seed)
     model = get_policy(args.policy)(env.state_size,
-                                    env.action_size, layer_sizes=(8, 8),
+                                    # env.action_size, layer_sizes=(8, 8),
                                     # env.action_size, layer_sizes=(64, 64),
-                                    # env.action_size, layer_sizes=(16, 16),
+                                    env.action_size, layer_sizes=(128, 128),
                                     dropout=args.dropout)
     if args.dropout > 0.0:
         policy = DropoutPolicy(model)

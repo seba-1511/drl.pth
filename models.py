@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import numpy as np
 import torch as th
 from torch import nn
 from torch.nn import functional as F
@@ -15,7 +16,7 @@ class BasePolicyModel(nn.Module):
     def __init__(self):
         super(BasePolicyModel, self).__init__()
         self.critic_state = None # The state that should be fed to the critic
-        self.critic_input = 0 # size of the input to the critic
+        self.critic_state_size = 0 # size of the input to the critic
 
     def _track_params(self, layers):
         """
@@ -154,3 +155,112 @@ class LSTM(BasePolicyModel):
     def reset_state(self):
         self.hiddens = [(V(th.rand(h[0].size())), 
                          V(th.rand(h[1].size()))) for h in self.hiddens]
+
+
+
+
+        """ Atari stuff is below: """
+
+
+
+def normalized_columns_initializer(weights, std=1.0):
+    out = th.randn(weights.size())
+    out *= std / th.sqrt(out.pow(2).sum(1).expand_as(out))
+    return out
+
+
+def weights_init(m):
+    classname = m.__class__.__name__
+    if classname.find('Conv') != -1:
+        weight_shape = list(m.weight.data.size())
+        fan_in = np.prod(weight_shape[1:4])
+        fan_out = np.prod(weight_shape[2:4]) * weight_shape[0]
+        w_bound = np.sqrt(6. / (fan_in + fan_out))
+        m.weight.data.uniform_(-w_bound, w_bound)
+        m.bias.data.fill_(0)
+    elif classname.find('Linear') != -1:
+        weight_shape = list(m.weight.data.size())
+        fan_in = weight_shape[1]
+        fan_out = weight_shape[0]
+        w_bound = np.sqrt(6. / (fan_in + fan_out))
+        m.weight.data.uniform_(-w_bound, w_bound)
+        m.bias.data.fill_(0)
+
+class Atari(BasePolicyModel):
+
+    def __init__(self, num_in, num_out, layer_sizes=(16, 16), activation=None, dropout=0.0):
+        super(Atari, self).__init__()
+        self.activation = activation
+        self.dropout = dropout
+        self.num_out = num_out
+        self.num_in = 210
+
+        self.conv1 = nn.Conv2d(self.num_in, 32, 3, stride=2, padding=1)
+        self.conv2 = nn.Conv2d(32, 32, 3, stride=2, padding=1)
+        self.conv3 = nn.Conv2d(32, 32, 3, stride=2, padding=1)
+        self.conv4 = nn.Conv2d(32, 32, 3, stride=2, padding=1)
+
+        self.lstm = nn.LSTMCell(320, 256)
+
+        num_outputs = num_out
+        self.critic_linear = nn.Linear(256, 1)
+        self.actor_linear = nn.Linear(256, num_outputs)
+
+        self.apply(weights_init)
+        self.actor_linear.weight.data = normalized_columns_initializer(
+            self.actor_linear.weight.data, 0.01
+        )
+        self.actor_linear.bias.data.fill_(0)
+        self.critic_linear.weight.data = normalized_columns_initializer(
+            self.critic_linear.weight.data, 1.0
+        )
+        self.critic_linear.bias.data.fill_(0)
+
+        self.lstm.bias_ih.data.fill_(0)
+        self.lstm.bias_hh.data.fill_(0)
+
+        self.critic_state = None
+        self.critic_state_size = 256
+        self.reset_state()
+
+    def forward(self, x):
+        x = F.elu(self.conv1(x))
+        x = F.elu(self.conv2(x))
+        x = F.elu(self.conv3(x))
+        x = F.elu(self.conv4(x))
+        x = x.view(-1, 320)
+        hx, cx = self.lstm(x, (self.hx, self.cx))
+        x = hx
+
+        self.hx = hx
+        self.cx = cx
+
+        self.critic_state = x
+        if self.dropout > 0.0:
+            x = F.dropout(x, self.dropout, training=True)
+
+        return self.actor_linear(x)
+
+    def forgetful_forward(self, x):
+        x = F.elu(self.conv1(x))
+        x = F.elu(self.conv2(x))
+        x = F.elu(self.conv3(x))
+        x = F.elu(self.conv4(x))
+        x = x.view(-1, 320)
+        hx, cx = self.lstm(x, (self.hx, self.cx))
+        x = hx
+
+        self.critic_state = x
+        if self.dropout > 0.0:
+            x = F.dropout(x, self.dropout, training=True)
+
+        return self.actor_linear(x), [[hx, cx], ]
+
+    def set_state(self, state):
+        hx, cx = state[0]
+        self.hx = hx
+        self.cx = cx
+
+    def reset_state(self):
+        self.cx = V(th.zeros(1, 256))
+        self.hx = V(th.zeros(1, 256))
