@@ -57,7 +57,10 @@ class EnvConverter(object):
         if name == 'step':
             return self.step
         else:
-            return self.env.__getattribute__(name)
+            try:
+                return self.env.__getattribute__(name)
+            except:
+                return self.env.__getattr__(name)
 
     def step(self, action):
         if self.is_discrete:
@@ -82,13 +85,54 @@ class EnvConverter(object):
         return action
 
 
+class StateNormalizer(EnvConverter):
+
+    """
+    Normalizes the state based on statistics from the last N states.
+    """
+
+    def __init__(self, env, memory_size=100, per_dimension=False):
+        self.env = env
+        self.memory_size = memory_size
+        self.per_dimension = per_dimension
+        self.states = []
+
+    def __getattr__(self, name):
+        if name == 'step':
+            return self.step
+        else:
+            try:
+                return self.env.__getattribute__(name)
+            except:
+                return self.env.__getattr__(name)
+
+    def normalize(self, new_state):
+        self.states.append(new_state)
+        self.states = self.states[-self.memory_size:]
+        state = np.array(self.states)
+        if self.per_dimension:
+            state = (state - np.mean(state, axis=0)) / np.std(state, axis=0)
+        else:
+            state = (state - np.mean(state)) / np.std(state)
+        return state[-1, :]
+
+    def step(self, action):
+        next_state, reward, done, info = self.env.step(action)
+        state = self.normalize(next_state)
+        return state, reward, done, info
+
+    def reset(self):
+        next_state = self.env.reset()
+        return self.normalize(next_state)
+
+
 class SingleActionEnvConverter(EnvConverter):
 
     """
     A `gym.Env` wrapper to enable continuous agents to work in discrete
     worlds.
 
-    There is a single dimensional input, which is normalized and used to 
+    There is a single dimensional input, which is normalized and used to
     determine which action to choose.
 
     Roughly:

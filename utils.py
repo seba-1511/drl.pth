@@ -17,7 +17,7 @@ from torch import optim
 from algos import A3C, Reinforce, ActorCriticReinforce, TRPO, Random
 from models import FC, LSTM
 from policies import StochasticPolicy, DropoutPolicy
-from env_converter import SingleActionEnvConverter, MultiActionEnvConverter, SoftmaxEnvConverter, numel
+from env_converter import SingleActionEnvConverter, MultiActionEnvConverter, SoftmaxEnvConverter, StateNormalizer, numel
 
 
 def parse_args():
@@ -108,6 +108,7 @@ def get_setup(seed_offset=0):
     args.seed += seed_offset
     env = gym.make(args.env)
     env = MultiActionEnvConverter(env)
+    env = StateNormalizer(env)
     env.seed(args.seed)
     th.manual_seed(args.seed)
     model = get_policy(args.policy)(env.state_size,

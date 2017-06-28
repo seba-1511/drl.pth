@@ -54,7 +54,8 @@ class BasePolicyModel(nn.Module):
 
     def set_state(self, state):
         """
-
+        Sets the state of the model to the provided one. E.g: the hidden layers 
+        of an RNN.
         """
         pass
 
