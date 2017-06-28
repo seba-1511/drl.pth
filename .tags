@@ -1,0 +1,98 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+A3C	algos/a3c.py	/^class A3C(BaseAgent):$/;"	c
+ALGO	Makefile	/^ALGO=random$/;"	m
+ALGO	Makefile	/^ALGO=reinforce$/;"	m
+AtariPolicy	models.py	/^class AtariPolicy(nn.Module):$/;"	c
+BaseAgent	algos/base.py	/^class BaseAgent(object):$/;"	c
+ENV	Makefile	/^ENV=CartPole-v1$/;"	m
+ENV	Makefile	/^ENV=InvertedPendulum-v1$/;"	m
+EPSILON	algos/algos_utils.py	/^EPSILON = 1e-8$/;"	v
+EnvConverter	env_converter.py	/^class EnvConverter(object):$/;"	c
+FCPolicy	models.py	/^class FCPolicy(nn.Module):$/;"	c
+LOG2PI	algos/algos_utils.py	/^LOG2PI = log(2.0 * PI)$/;"	v
+LR	Makefile	/^LR=0.001$/;"	m
+LSTMPolicy	models.py	/^class LSTMPolicy(nn.Module):$/;"	c
+LinearVF	algos/algos_utils.py	/^class LinearVF(object):$/;"	c
+NUM_WORKERS	Makefile	/^NUM_WORKERS=8$/;"	m
+N_ITER	Makefile	/^N_ITER=2000$/;"	m
+OPT	Makefile	/^OPT=RMSprop$/;"	m
+PI	algos/algos_utils.py	/^PI = 2.141592654$/;"	v
+ROOT	mpi_bench.py	/^ROOT = (rank == 0)$/;"	v
+Random	algos/random.py	/^class Random(BaseAgent):$/;"	c
+Reinforce	algos/reinforce.py	/^class Reinforce(BaseAgent):$/;"	c
+TEST_N_ITER	Makefile	/^TEST_N_ITER=100$/;"	m
+TRPO	algos/trpo.py	/^class TRPO(BaseAgent):$/;"	c
+__call__	algos/algos_utils.py	/^    def __call__(self, x):$/;"	m	class:LinearVF	file:
+__getattr__	env_converter.py	/^    def __getattr__(self, name):$/;"	m	class:EnvConverter	file:
+__init__	algos/a3c.py	/^    def __init__(self, policy=None, baseline=None, gamma=0.99, update_frequency=5):$/;"	m	class:A3C
+__init__	algos/algos_utils.py	/^    def __init__(self, num_in, num_out):$/;"	m	class:LinearVF
+__init__	algos/random.py	/^    def __init__(self, policy, *args, **kwargs):$/;"	m	class:Random
+__init__	algos/reinforce.py	/^    def __init__(self, policy=None, baseline=1.0, gamma=0.99, update_frequency=1000):$/;"	m	class:Reinforce
+__init__	algos/trpo.py	/^    def __init__($/;"	m	class:TRPO
+__init__	env_converter.py	/^    def __init__(self, env):$/;"	m	class:EnvConverter
+__init__	models.py	/^    def __init__(self, num_in, num_out):$/;"	m	class:AtariPolicy
+__init__	models.py	/^    def __init__(self, num_in, num_out, layers=(16, 16)):$/;"	m	class:LSTMPolicy
+__init__	models.py	/^    def __init__(self, num_in, num_out, layers=(16, 16), activation=None):$/;"	m	class:FCPolicy
+_convert	env_converter.py	/^    def _convert(self, action):$/;"	m	class:EnvConverter
+_get_grad	algos/trpo.py	/^    def _get_grad(self, value):$/;"	m	class:TRPO
+_grads_gvp	algos/trpo.py	/^    def _grads_gvp(self, tangents, actions, states, means, logstds):$/;"	m	class:TRPO
+_reset	algos/a3c.py	/^    def _reset(self):$/;"	m	class:A3C
+_reset	algos/reinforce.py	/^    def _reset(self):$/;"	m	class:Reinforce
+_reset	algos/trpo.py	/^    def _reset(self):$/;"	m	class:TRPO
+_surrogate	algos/trpo.py	/^    def _surrogate(self, actions, states, means, logstds, advantages):$/;"	m	class:TRPO
+act	algos/a3c.py	/^    def act(self, state):$/;"	m	class:A3C
+act	algos/base.py	/^    def act(self, state):$/;"	m	class:BaseAgent
+act	algos/random.py	/^    def act(self, state):$/;"	m	class:Random
+act	algos/reinforce.py	/^    def act(self, state):$/;"	m	class:Reinforce
+act	algos/trpo.py	/^    def act(self, state):$/;"	m	class:TRPO
+comm	mpi_bench.py	/^comm = MPI.COMM_WORLD$/;"	v
+conjgrad	algos/trpo.py	/^        def conjgrad(fvp, grads, cg_iters=10, residual_tol=1e-10):$/;"	f	function:TRPO.get_update
+discount	algos/algos_utils.py	/^def discount(rewards, gamma):$/;"	f
+done	algos/base.py	/^    def done(self):$/;"	m	class:BaseAgent
+dot_not_flat	algos/algos_utils.py	/^def dot_not_flat(A, B):$/;"	f
+extract_features	algos/algos_utils.py	/^    def extract_features(self, x, d=False):$/;"	m	class:LinearVF
+fisher_vec_prod	algos/trpo.py	/^        def fisher_vec_prod(vectors):$/;"	f	function:TRPO.get_update
+forward	models.py	/^    def forward(self, x):$/;"	m	class:AtariPolicy
+forward	models.py	/^    def forward(self, x):$/;"	m	class:FCPolicy
+forward	models.py	/^    def forward(self, x):$/;"	m	class:LSTMPolicy
+gauss_log_prob	algos/algos_utils.py	/^def gauss_log_prob(means, logstds, x):$/;"	f
+get_algo	utils.py	/^def get_algo(name):$/;"	f
+get_opt	utils.py	/^def get_opt(name):$/;"	f
+get_policy	utils.py	/^def get_policy(name):$/;"	f
+get_setup	utils.py	/^def get_setup(seed_offset=0):$/;"	f
+get_update	algos/base.py	/^    def get_update(self):$/;"	m	class:BaseAgent
+get_update	algos/reinforce.py	/^    def get_update(self):$/;"	m	class:Reinforce
+get_update	algos/trpo.py	/^    def get_update(self):$/;"	m	class:TRPO
+learn	algos/algos_utils.py	/^    def learn(self, states, rewards):$/;"	m	class:LinearVF
+learn	algos/base.py	/^    def learn(self, state=None, action=None, reward=None, next_state=None, done=None, info=None):$/;"	m	class:BaseAgent
+learn	algos/reinforce.py	/^    def learn(self, state, action, reward, next_state, done, info=None):$/;"	m	class:Reinforce
+learn	algos/trpo.py	/^    def learn(self, state, action, reward, next_state, done, info=None):$/;"	m	class:TRPO
+mpi_sync	mpi_bench.py	/^def mpi_sync(params):$/;"	f
+mpi_update	mpi_bench.py	/^def mpi_update(args, env, agent, opt):$/;"	f
+new_episode	algos/base.py	/^    def new_episode(self, terminated=False):$/;"	m	class:BaseAgent
+new_episode	algos/trpo.py	/^    def new_episode(self, terminated=False):$/;"	m	class:TRPO
+normalize	algos/algos_utils.py	/^def normalize(tensor):$/;"	f
+numel	env_converter.py	/^def numel(x):$/;"	f
+parameters	algos/a3c.py	/^    def parameters(self):$/;"	m	class:A3C
+parameters	algos/base.py	/^    def parameters(self):$/;"	m	class:BaseAgent
+parameters	algos/reinforce.py	/^    def parameters(self):$/;"	m	class:Reinforce
+parameters	algos/trpo.py	/^    def parameters(self):$/;"	m	class:TRPO
+parse_args	utils.py	/^def parse_args():$/;"	f
+pre_train	async_bench.py	/^def pre_train(agent, opt, rank):$/;"	f
+print_stats	benchmark.py	/^def print_stats(name, ep_rewards, n_iters, timing, steps):$/;"	f
+rank	mpi_bench.py	/^rank = comm.Get_rank()$/;"	v
+set_gradients	algos/base.py	/^    def set_gradients(self, gradients):$/;"	m	class:BaseAgent
+size	mpi_bench.py	/^size = comm.Get_size()$/;"	v
+step	env_converter.py	/^    def step(self, action):$/;"	m	class:EnvConverter
+test	benchmark.py	/^def test(args, env, agent):$/;"	f
+train	benchmark.py	/^def train(args, env, agent, opt, update, verbose=True):$/;"	f
+train_update	benchmark.py	/^def train_update(args, env, agent, opt):$/;"	f
+updatable	algos/base.py	/^    def updatable(self):$/;"	m	class:BaseAgent
+updatable	algos/reinforce.py	/^    def updatable(self):$/;"	m	class:Reinforce
+updatable	algos/trpo.py	/^    def updatable(self):$/;"	m	class:TRPO
+update	algos/base.py	/^    def update(self, update):$/;"	m	class:BaseAgent
