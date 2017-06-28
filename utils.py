@@ -14,7 +14,7 @@ from functools import reduce
 from argparse import ArgumentParser
 from torch import optim
 
-from algos import A3C, Reinforce, CriticReinforce, TRPO, Random
+from algos import A3C, Reinforce, ActorCriticReinforce, TRPO, Random
 from models import FC, LSTM
 from policies import StochasticPolicy, DropoutPolicy
 from env_converter import SingleActionEnvConverter, MultiActionEnvConverter, SoftmaxEnvConverter, numel
@@ -77,7 +77,7 @@ def parse_args():
 def get_algo(name):
     algos = {
         'reinforce': Reinforce,
-        'creinforce': CriticReinforce,
+        'acreinforce': ActorCriticReinforce,
         'trpo': TRPO,
         'a3c': A3C,
         'random': Random,

@@ -15,6 +15,7 @@ class BasePolicyModel(nn.Module):
     def __init__(self):
         super(BasePolicyModel, self).__init__()
         self.critic_state = None # The state that should be fed to the critic
+        self.critic_input = 0 # size of the input to the critic
 
     def _track_params(self, layers):
         """
@@ -78,13 +79,14 @@ class FC(BasePolicyModel):
         self.dropout = dropout
         self.layers = layers
         self._track_params(layers)
+        self.critic_state_size = layer_sizes[-1]
         print('Optimizing ', len(list(self.parameters())), ' parameters')
 
     def forward(self, x):
         for l in self.layers[:-1]:
             x = self.activation(l(x))
+            self.critic_state = x
             if self.dropout > 0.0:
-                self.critic_state = x
                 x = F.dropout(x, p=self.dropout, training=True)
         x = self.layers[-1](x)
         return x
@@ -113,6 +115,7 @@ class LSTM(BasePolicyModel):
                              V(th.rand(1, 1, num_out))))
         self.dropout = dropout
         self._track_params(self.lstms)
+        self.critic_state_size = layer_sizes[-1]
         print('Optimizing ', len(list(self.parameters())), ' parameters')
 
     def forward(self, x):
