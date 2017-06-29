@@ -60,6 +60,13 @@ class BasePolicyModel(nn.Module):
         """
         pass
 
+    def get_state(self):
+        """
+        Gets the state of the model to the provided one. E.g: the hidden layers 
+        of an RNN.
+        """
+        return []
+
 
 class FC(BasePolicyModel):
 
@@ -94,7 +101,7 @@ class FC(BasePolicyModel):
         return x
 
     def forgetful_forward(self, x):
-        return self.forward(x), [[0.0, ], ]
+        return self.forward(x), []
 
 
 class LSTM(BasePolicyModel):
@@ -117,6 +124,7 @@ class LSTM(BasePolicyModel):
                              V(th.rand(1, 1, num_out))))
         self.dropout = dropout
         self._track_params(self.lstms)
+        self.reset_state()
         self.critic_state_size = layer_sizes[-1]
         print('Optimizing ', len(list(self.parameters())), ' parameters')
 
@@ -135,32 +143,41 @@ class LSTM(BasePolicyModel):
         return x
 
     def forgetful_forward(self, x):
-        hiddens = []
+        state = []
         for lstm, hidden in zip(self.lstms[:-1], self.hiddens[:-1]):
             x, new_hidden = lstm(x.view(1, 1, -1), hidden)
             x = F.tanh(x)
             self.critic_state = x
             if self.dropout > 0.0:
                 x = F.dropout(x, p=self.dropout, training=True)
-            hiddens.append(new_hidden)
+            state.append(new_hidden[0])
+            state.append(new_hidden[1])
         x, new_hidden = self.lstms[-1](x.view(1, 1, -1), self.hiddens[-1])
-        hiddens.append(new_hidden)
-        return x, hiddens
+        state.append(new_hidden[0])
+        state.append(new_hidden[1])
+        return x, state
 
     def set_state(self, state):
-        for h, s in zip(self.hiddens, state):
-            h[0].data.copy_(s[0].data)
-            h[1].data.copy_(s[1].data)
+        hiddens = []
+        for i in range(0, len(state), 2):
+            hiddens.append((state[i], state[i+1]))
+        self.hiddens = hiddens
+
+    def get_state(self):
+        state = []
+        for h in self.hiddens:
+            state.append(h[0])
+            state.append(h[1])
+        return state
 
     def reset_state(self):
-        self.hiddens = [(V(th.rand(h[0].size())), 
-                         V(th.rand(h[1].size()))) for h in self.hiddens]
+        self.hiddens = [(V(th.zeros(h[0].size())), 
+                         V(th.zeros(h[1].size()))) for h in self.hiddens]
 
 
 
 
         """ Atari stuff is below: """
-
 
 
 def normalized_columns_initializer(weights, std=1.0):
@@ -249,13 +266,16 @@ class Atari(BasePolicyModel):
         if self.dropout > 0.0:
             x = F.dropout(x, self.dropout, training=True)
 
-        return self.actor_linear(x), [[hx, cx], ]
+        return self.actor_linear(x), [hx, cx]
 
     def set_state(self, state):
-        hx, cx = state[0]
+        hx, cx = state
         self.hx = hx
         self.cx = cx
 
     def reset_state(self):
         self.cx = V(th.zeros(1, 256))
         self.hx = V(th.zeros(1, 256))
+
+    def get_state(self):
+        return [self.cx, self.hx]

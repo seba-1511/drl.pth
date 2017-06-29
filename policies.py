@@ -49,15 +49,13 @@ class DropoutPolicy(nn.Module):
 
     def forward(self, x):
         samples = []
-        states = []
-        # TODO: avoid the for loop by creating a batch
+        state = [0.0 for _ in self.model.get_state()]
         for _ in range(self.num_samples):
-            out, state = self.model.forgetful_forward(x)
+            out, new_state = self.model.forgetful_forward(x)
             samples.append(out)
-            states.append(state)
+            state = [s + u for s, u in zip(state, new_state)]
         samples = th.cat(samples, 0)
-        state = reduce(lambda x, y: [a + b for a, b in zip(x, y)], states[1:], states[0])
-        state = [[val / self.num_samples for val in s] for s in state]
+        state = [s / self.num_samples for s in state]
         self.model.set_state(state)
         mu = th.mean(samples, 0)
         std = th.std(samples, 0)

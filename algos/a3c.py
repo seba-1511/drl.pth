@@ -30,8 +30,7 @@ class A3C(ActorCriticReinforce):
     def new_episode(self, terminated=False):
         super(A3C, self).new_episode(terminated=terminated)
         if not terminated:
-            self.rewards[-2].append(self.critics[-1][-1].data[0, 0])
-        self.critics.append([])
+            self.rewards[-2].append(self.critics[-2][-1].data[0, 0])
 
     def get_update(self):
         loss = 0.0
@@ -48,7 +47,6 @@ class A3C(ActorCriticReinforce):
                     critic_loss += 0.5 * advantage**2
                     action.reinforce(gae.data[0,0])
                 loss = [entropy_loss, 0.5 * critic_loss] + actions
-                backward(loss, [th.ones(1), th.ones(1)] + [None for _ in actions], retain_variables=True)
-                nn.utils.clip_grad_norm(self.parameters(), self.grad_norm)
+                backward(loss, [th.ones(1), th.ones(1)] + [None for _ in actions])
         self._reset()
         return [p.grad.clone() for p in self.parameters()]

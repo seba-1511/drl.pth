@@ -4,91 +4,137 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
-A3C	algos/a3c.py	/^class A3C(BaseAgent):$/;"	c
-ALGO	Makefile	/^ALGO=random$/;"	m
-ALGO	Makefile	/^ALGO=reinforce$/;"	m
-AtariPolicy	models.py	/^class AtariPolicy(nn.Module):$/;"	c
+A3C	algos/a3c.py	/^class A3C(ActorCriticReinforce):$/;"	c
+ALGO	Makefile	/^ALGO=a3c$/;"	m
+ActorCriticReinforce	algos/reinforce_with_critic.py	/^class ActorCriticReinforce(Reinforce):$/;"	c
+Atari	models.py	/^class Atari(BasePolicyModel):$/;"	c
 BaseAgent	algos/base.py	/^class BaseAgent(object):$/;"	c
-ENV	Makefile	/^ENV=CartPole-v1$/;"	m
-ENV	Makefile	/^ENV=InvertedPendulum-v1$/;"	m
+BasePolicyModel	models.py	/^class BasePolicyModel(nn.Module):$/;"	c
+DROPOUT	Makefile	/^DROPOUT=0.9$/;"	m
+DropoutPolicy	policies.py	/^class DropoutPolicy(nn.Module):$/;"	c
+ENV	Makefile	/^ENV=CartPole-v0$/;"	m
 EPSILON	algos/algos_utils.py	/^EPSILON = 1e-8$/;"	v
+EPSILON	env_converter.py	/^EPSILON = 1e-8$/;"	v
 EnvConverter	env_converter.py	/^class EnvConverter(object):$/;"	c
-FCPolicy	models.py	/^class FCPolicy(nn.Module):$/;"	c
+FC	models.py	/^class FC(BasePolicyModel):$/;"	c
 LOG2PI	algos/algos_utils.py	/^LOG2PI = log(2.0 * PI)$/;"	v
-LR	Makefile	/^LR=0.001$/;"	m
-LSTMPolicy	models.py	/^class LSTMPolicy(nn.Module):$/;"	c
+LR	Makefile	/^LR=0.003$/;"	m
+LSTM	models.py	/^class LSTM(BasePolicyModel):$/;"	c
 LinearVF	algos/algos_utils.py	/^class LinearVF(object):$/;"	c
+MultiActionEnvConverter	env_converter.py	/^class MultiActionEnvConverter(EnvConverter):$/;"	c
 NUM_WORKERS	Makefile	/^NUM_WORKERS=8$/;"	m
-N_ITER	Makefile	/^N_ITER=2000$/;"	m
+N_ITER	Makefile	/^N_ITER=100$/;"	m
 OPT	Makefile	/^OPT=RMSprop$/;"	m
 PI	algos/algos_utils.py	/^PI = 2.141592654$/;"	v
-ROOT	mpi_bench.py	/^ROOT = (rank == 0)$/;"	v
+POLICY	Makefile	/^POLICY=fc$/;"	m
 Random	algos/random.py	/^class Random(BaseAgent):$/;"	c
 Reinforce	algos/reinforce.py	/^class Reinforce(BaseAgent):$/;"	c
+SingleActionEnvConverter	env_converter.py	/^class SingleActionEnvConverter(EnvConverter):$/;"	c
+SoftmaxEnvConverter	env_converter.py	/^class SoftmaxEnvConverter(EnvConverter):$/;"	c
+StateNormalizer	env_converter.py	/^class StateNormalizer(EnvConverter):$/;"	c
+StochasticPolicy	policies.py	/^class StochasticPolicy(nn.Module):$/;"	c
 TEST_N_ITER	Makefile	/^TEST_N_ITER=100$/;"	m
 TRPO	algos/trpo.py	/^class TRPO(BaseAgent):$/;"	c
 __call__	algos/algos_utils.py	/^    def __call__(self, x):$/;"	m	class:LinearVF	file:
 __getattr__	env_converter.py	/^    def __getattr__(self, name):$/;"	m	class:EnvConverter	file:
-__init__	algos/a3c.py	/^    def __init__(self, policy=None, baseline=None, gamma=0.99, update_frequency=5):$/;"	m	class:A3C
+__init__	algos/a3c.py	/^    def __init__(self, policy=None, critic=None, gamma=0.99, update_frequency=1000, entropy_weight=0.0001, grad_norm=40.0, tau=1.0):$/;"	m	class:A3C
 __init__	algos/algos_utils.py	/^    def __init__(self, num_in, num_out):$/;"	m	class:LinearVF
 __init__	algos/random.py	/^    def __init__(self, policy, *args, **kwargs):$/;"	m	class:Random
-__init__	algos/reinforce.py	/^    def __init__(self, policy=None, baseline=1.0, gamma=0.99, update_frequency=1000):$/;"	m	class:Reinforce
+__init__	algos/reinforce.py	/^    def __init__(self, policy=None, baseline=0.5, gamma=0.99, update_frequency=1000, entropy_weight=0.0001):$/;"	m	class:Reinforce
+__init__	algos/reinforce_with_critic.py	/^    def __init__(self, policy=None, critic=None, gamma=0.99, update_frequency=1000, entropy_weight=0.0001):$/;"	m	class:ActorCriticReinforce
 __init__	algos/trpo.py	/^    def __init__($/;"	m	class:TRPO
 __init__	env_converter.py	/^    def __init__(self, env):$/;"	m	class:EnvConverter
-__init__	models.py	/^    def __init__(self, num_in, num_out):$/;"	m	class:AtariPolicy
-__init__	models.py	/^    def __init__(self, num_in, num_out, layers=(16, 16)):$/;"	m	class:LSTMPolicy
-__init__	models.py	/^    def __init__(self, num_in, num_out, layers=(16, 16), activation=None):$/;"	m	class:FCPolicy
+__init__	env_converter.py	/^    def __init__(self, env):$/;"	m	class:SingleActionEnvConverter
+__init__	env_converter.py	/^    def __init__(self, env, memory_size=100, per_dimension=False):$/;"	m	class:StateNormalizer
+__init__	models.py	/^    def __init__(self):$/;"	m	class:BasePolicyModel
+__init__	models.py	/^    def __init__(self, num_in, num_out, layer_sizes=(16, 16), activation=None, dropout=0.0):$/;"	m	class:Atari
+__init__	models.py	/^    def __init__(self, num_in, num_out, layer_sizes=(16, 16), activation=None, dropout=0.0):$/;"	m	class:FC
+__init__	models.py	/^    def __init__(self, num_in, num_out, layer_sizes=(16, 16), dropout=0.0):$/;"	m	class:LSTM
+__init__	policies.py	/^    def __init__(self, model):$/;"	m	class:StochasticPolicy
+__init__	policies.py	/^    def __init__(self, model, num_samples=10):$/;"	m	class:DropoutPolicy
+_clip	env_converter.py	/^    def _clip(self, action):$/;"	m	class:EnvConverter
 _convert	env_converter.py	/^    def _convert(self, action):$/;"	m	class:EnvConverter
+_convert	env_converter.py	/^    def _convert(self, action):$/;"	m	class:MultiActionEnvConverter
+_convert	env_converter.py	/^    def _convert(self, action):$/;"	m	class:SingleActionEnvConverter
+_convert	env_converter.py	/^    def _convert(self, action):$/;"	m	class:SoftmaxEnvConverter
 _get_grad	algos/trpo.py	/^    def _get_grad(self, value):$/;"	m	class:TRPO
 _grads_gvp	algos/trpo.py	/^    def _grads_gvp(self, tangents, actions, states, means, logstds):$/;"	m	class:TRPO
-_reset	algos/a3c.py	/^    def _reset(self):$/;"	m	class:A3C
 _reset	algos/reinforce.py	/^    def _reset(self):$/;"	m	class:Reinforce
+_reset	algos/reinforce_with_critic.py	/^    def _reset(self):$/;"	m	class:ActorCriticReinforce
 _reset	algos/trpo.py	/^    def _reset(self):$/;"	m	class:TRPO
 _surrogate	algos/trpo.py	/^    def _surrogate(self, actions, states, means, logstds, advantages):$/;"	m	class:TRPO
-act	algos/a3c.py	/^    def act(self, state):$/;"	m	class:A3C
+_track_params	models.py	/^    def _track_params(self, layers):$/;"	m	class:BasePolicyModel
 act	algos/base.py	/^    def act(self, state):$/;"	m	class:BaseAgent
 act	algos/random.py	/^    def act(self, state):$/;"	m	class:Random
 act	algos/reinforce.py	/^    def act(self, state):$/;"	m	class:Reinforce
+act	algos/reinforce_with_critic.py	/^    def act(self, state):$/;"	m	class:ActorCriticReinforce
 act	algos/trpo.py	/^    def act(self, state):$/;"	m	class:TRPO
-comm	mpi_bench.py	/^comm = MPI.COMM_WORLD$/;"	v
+async_train	async_bench.py	/^def async_train(agent, opt, rank):$/;"	f
+clip	env_converter.py	/^def clip(val, minval, maxval):$/;"	f
 conjgrad	algos/trpo.py	/^        def conjgrad(fvp, grads, cg_iters=10, residual_tol=1e-10):$/;"	f	function:TRPO.get_update
 discount	algos/algos_utils.py	/^def discount(rewards, gamma):$/;"	f
 done	algos/base.py	/^    def done(self):$/;"	m	class:BaseAgent
 dot_not_flat	algos/algos_utils.py	/^def dot_not_flat(A, B):$/;"	f
 extract_features	algos/algos_utils.py	/^    def extract_features(self, x, d=False):$/;"	m	class:LinearVF
 fisher_vec_prod	algos/trpo.py	/^        def fisher_vec_prod(vectors):$/;"	f	function:TRPO.get_update
-forward	models.py	/^    def forward(self, x):$/;"	m	class:AtariPolicy
-forward	models.py	/^    def forward(self, x):$/;"	m	class:FCPolicy
-forward	models.py	/^    def forward(self, x):$/;"	m	class:LSTMPolicy
+forgetful_forward	models.py	/^    def forgetful_forward(self, x):$/;"	m	class:Atari
+forgetful_forward	models.py	/^    def forgetful_forward(self, x):$/;"	m	class:BasePolicyModel
+forgetful_forward	models.py	/^    def forgetful_forward(self, x):$/;"	m	class:FC
+forgetful_forward	models.py	/^    def forgetful_forward(self, x):$/;"	m	class:LSTM
+forward	models.py	/^    def forward(self, x):$/;"	m	class:Atari
+forward	models.py	/^    def forward(self, x):$/;"	m	class:BasePolicyModel
+forward	models.py	/^    def forward(self, x):$/;"	m	class:FC
+forward	models.py	/^    def forward(self, x):$/;"	m	class:LSTM
+forward	policies.py	/^    def forward(self, x):$/;"	m	class:DropoutPolicy
+forward	policies.py	/^    def forward(self, x):$/;"	m	class:StochasticPolicy
 gauss_log_prob	algos/algos_utils.py	/^def gauss_log_prob(means, logstds, x):$/;"	f
+generalized_advantage_estimations	algos/algos_utils.py	/^def generalized_advantage_estimations(rewards, critics, gamma, tau):$/;"	f
 get_algo	utils.py	/^def get_algo(name):$/;"	f
 get_opt	utils.py	/^def get_opt(name):$/;"	f
 get_policy	utils.py	/^def get_policy(name):$/;"	f
 get_setup	utils.py	/^def get_setup(seed_offset=0):$/;"	f
+get_update	algos/a3c.py	/^    def get_update(self):$/;"	m	class:A3C
 get_update	algos/base.py	/^    def get_update(self):$/;"	m	class:BaseAgent
 get_update	algos/reinforce.py	/^    def get_update(self):$/;"	m	class:Reinforce
+get_update	algos/reinforce_with_critic.py	/^    def get_update(self):$/;"	m	class:ActorCriticReinforce
 get_update	algos/trpo.py	/^    def get_update(self):$/;"	m	class:TRPO
+init_processes	sync_bench.py	/^def init_processes(rank, size, fn, backend='tcp'):$/;"	f
 learn	algos/algos_utils.py	/^    def learn(self, states, rewards):$/;"	m	class:LinearVF
 learn	algos/base.py	/^    def learn(self, state=None, action=None, reward=None, next_state=None, done=None, info=None):$/;"	m	class:BaseAgent
 learn	algos/reinforce.py	/^    def learn(self, state, action, reward, next_state, done, info=None):$/;"	m	class:Reinforce
+learn	algos/reinforce_with_critic.py	/^    def learn(self, state, action, reward, next_state, done, info=None):$/;"	m	class:ActorCriticReinforce
 learn	algos/trpo.py	/^    def learn(self, state, action, reward, next_state, done, info=None):$/;"	m	class:TRPO
-mpi_sync	mpi_bench.py	/^def mpi_sync(params):$/;"	f
-mpi_update	mpi_bench.py	/^def mpi_update(args, env, agent, opt):$/;"	f
+new_episode	algos/a3c.py	/^    def new_episode(self, terminated=False):$/;"	m	class:A3C
 new_episode	algos/base.py	/^    def new_episode(self, terminated=False):$/;"	m	class:BaseAgent
+new_episode	algos/reinforce.py	/^    def new_episode(self, terminated=False):$/;"	m	class:Reinforce
+new_episode	algos/reinforce_with_critic.py	/^    def new_episode(self, terminated=False):$/;"	m	class:ActorCriticReinforce
 new_episode	algos/trpo.py	/^    def new_episode(self, terminated=False):$/;"	m	class:TRPO
 normalize	algos/algos_utils.py	/^def normalize(tensor):$/;"	f
+normalize	env_converter.py	/^    def normalize(self, new_state):$/;"	m	class:StateNormalizer
+normalized_columns_initializer	models.py	/^def normalized_columns_initializer(weights, std=1.0):$/;"	f
 numel	env_converter.py	/^def numel(x):$/;"	f
-parameters	algos/a3c.py	/^    def parameters(self):$/;"	m	class:A3C
 parameters	algos/base.py	/^    def parameters(self):$/;"	m	class:BaseAgent
 parameters	algos/reinforce.py	/^    def parameters(self):$/;"	m	class:Reinforce
+parameters	algos/reinforce_with_critic.py	/^    def parameters(self):$/;"	m	class:ActorCriticReinforce
 parameters	algos/trpo.py	/^    def parameters(self):$/;"	m	class:TRPO
 parse_args	utils.py	/^def parse_args():$/;"	f
-pre_train	async_bench.py	/^def pre_train(agent, opt, rank):$/;"	f
-print_stats	benchmark.py	/^def print_stats(name, ep_rewards, n_iters, timing, steps):$/;"	f
-rank	mpi_bench.py	/^rank = comm.Get_rank()$/;"	v
+print_stats	benchmark.py	/^def print_stats(name, rewards, n_iters, timing, steps):$/;"	f
+reset	env_converter.py	/^    def reset(self):$/;"	m	class:StateNormalizer
+reset	policies.py	/^    def reset(self):$/;"	m	class:DropoutPolicy
+reset	policies.py	/^    def reset(self):$/;"	m	class:StochasticPolicy
+reset_state	models.py	/^    def reset_state(self):$/;"	m	class:Atari
+reset_state	models.py	/^    def reset_state(self):$/;"	m	class:BasePolicyModel
+reset_state	models.py	/^    def reset_state(self):$/;"	m	class:LSTM
+run	sync_bench.py	/^def run(rank, size):$/;"	f
 set_gradients	algos/base.py	/^    def set_gradients(self, gradients):$/;"	m	class:BaseAgent
-size	mpi_bench.py	/^size = comm.Get_size()$/;"	v
+set_state	models.py	/^    def set_state(self, state):$/;"	m	class:Atari
+set_state	models.py	/^    def set_state(self, state):$/;"	m	class:BasePolicyModel
+set_state	models.py	/^    def set_state(self, state):$/;"	m	class:LSTM
+softmax	env_converter.py	/^def softmax(x):$/;"	f
 step	env_converter.py	/^    def step(self, action):$/;"	m	class:EnvConverter
+step	env_converter.py	/^    def step(self, action):$/;"	m	class:StateNormalizer
+sync	sync_bench.py	/^def sync(tensors):$/;"	f
+sync_update	sync_bench.py	/^def sync_update(args, env, agent, opt):$/;"	f
 test	benchmark.py	/^def test(args, env, agent):$/;"	f
 train	benchmark.py	/^def train(args, env, agent, opt, update, verbose=True):$/;"	f
 train_update	benchmark.py	/^def train_update(args, env, agent, opt):$/;"	f
@@ -96,3 +142,4 @@ updatable	algos/base.py	/^    def updatable(self):$/;"	m	class:BaseAgent
 updatable	algos/reinforce.py	/^    def updatable(self):$/;"	m	class:Reinforce
 updatable	algos/trpo.py	/^    def updatable(self):$/;"	m	class:TRPO
 update	algos/base.py	/^    def update(self, update):$/;"	m	class:BaseAgent
+weights_init	models.py	/^def weights_init(m):$/;"	f

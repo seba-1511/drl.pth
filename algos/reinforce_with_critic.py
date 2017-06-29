@@ -58,6 +58,6 @@ class ActorCriticReinforce(Reinforce):
                     action.reinforce(reward - critic.data[0, 0])
                     critic_loss += F.smooth_l1_loss(critic, V(T([reward])))
                 loss = [entropy_loss, critic_loss] + actions
-                backward(loss, [th.ones(1), th.ones(1)] + [None for _ in actions], retain_variables=True)
+                backward(loss, [th.ones(1), th.ones(1)] + [None for _ in actions])
         self._reset()
         return [p.grad.clone() for p in self.parameters()]
