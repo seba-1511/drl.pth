@@ -60,7 +60,7 @@ class Reinforce(BaseAgent):
                 for action, reward in zip(actions, rewards):
                     action.reinforce(reward - self.baseline)
                 loss = [entropy_loss, ] + actions
-                backward(loss, [th.ones(1)] + [None for _ in actions])
+                backward(loss, [th.ones(1)] + [None for _ in actions], retain_variables=True)
         self._reset()
         return [p.grad.clone() for p in self.parameters()]
 
