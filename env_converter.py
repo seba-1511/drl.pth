@@ -8,6 +8,8 @@ from collections import Iterable
 from functools import reduce
 
 
+EPSILON = 1e-8
+
 def numel(x):
     if hasattr(x, 'shape'):
         return reduce(lambda x, y: x * y, x.shape)
@@ -88,33 +90,26 @@ class EnvConverter(object):
 class StateNormalizer(EnvConverter):
 
     """
-    Normalizes the state based on statistics from the last N states.
+    Normalizes the state using a simple moving average
     """
 
     def __init__(self, env, memory_size=100, per_dimension=False):
         self.env = env
-        self.memory_size = memory_size
         self.per_dimension = per_dimension
-        self.states = []
-
-    def __getattr__(self, name):
-        if name == 'step':
-            return self.step
-        else:
-            try:
-                return self.env.__getattribute__(name)
-            except:
-                return self.env.__getattr__(name)
+        self.per_dimension = True
+        self.ratio = 1.0 / float(memory_size)
+        self.neg_ratio = 1.0 - self.ratio
+        self.mean = 0.0
+        self.var = 0.0
 
     def normalize(self, new_state):
-        self.states.append(new_state)
-        self.states = self.states[-self.memory_size:]
-        state = np.array(self.states)
-        if self.per_dimension:
-            state = (state - np.mean(state, axis=0)) / np.std(state, axis=0)
-        else:
-            state = (state - np.mean(state)) / np.std(state)
-        return state[-1, :]
+        x = new_state
+        if not self.per_dimension:
+            x = np.mean(x)
+        self.mean = self.neg_ratio * self.mean + self.ratio * x
+        self.var = self.neg_ratio * self.var + self.ratio * (x - self.mean)**2
+        state = (new_state - self.mean) / (np.sqrt(self.var) + EPSILON)
+        return state
 
     def step(self, action):
         next_state, reward, done, info = self.env.step(action)
