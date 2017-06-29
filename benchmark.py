@@ -14,9 +14,10 @@ from time import time
 from utils import get_setup
 
 def print_stats(name, rewards, n_iters, timing, steps):
+    denom = 1 if len(rewards) == 0 else len(rewards)
     print('*'*20, name + ' Statistics Iteration ', n_iters, '*'*20)
     print('Total Reward: ', sum(rewards))
-    print('Average Reward: ', sum(rewards)/(len(rewards) + 1))
+    print('Average Reward: ', sum(rewards)/denom)
     print('Total Timing: ', timing)
     print('Total Steps: ', steps)
     print('\n')
@@ -40,7 +41,8 @@ def train(args, env, agent, opt, update, verbose=True):
             if agent.updatable():
                 update(args, env, agent, opt)
                 num_updates += 1
-                train_rewards.append(sum(update_rewards) / (1 + len(update_rewards)))
+                denom = 1 if len(update_rewards) == 0 else len(update_rewards)
+                train_rewards.append(sum(update_rewards) / denom)
                 if verbose:
                     print_stats('Train', update_rewards, num_updates, time() - train_start, train_steps)
                 update_rewards = []
