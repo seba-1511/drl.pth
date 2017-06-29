@@ -40,9 +40,10 @@ def train(args, env, agent, opt, update, verbose=True):
             if agent.updatable():
                 update(args, env, agent, opt)
                 num_updates += 1
-                train_rewards.append(sum(update_rewards))
+                train_rewards.append(sum(update_rewards) / (1 + len(update_rewards)))
                 if verbose:
                     print_stats('Train', update_rewards, num_updates, time() - train_start, train_steps)
+                update_rewards = []
 
             train_steps += 1
             action, action_info = agent.act(state)
