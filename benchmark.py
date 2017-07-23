@@ -14,7 +14,7 @@ from time import time
 from utils import get_setup
 
 def print_stats(name, rewards, n_iters, timing, steps):
-    denom = 1 if len(rewards) == 0 else len(rewards)
+    denom = max(len(rewards), 1)
     print('*'*20, name + ' Statistics Iteration ', n_iters, '*'*20)
     print('Total Reward: ', sum(rewards))
     print('Average Reward: ', sum(rewards)/denom)
@@ -29,25 +29,30 @@ def train_update(args, env, agent, opt):
 
 def train(args, env, agent, opt, update, verbose=True):
     train_rewards = []
-    update_rewards = []
+    iter_reward = []
     train_start = time()
     train_steps = 0
     num_updates = 0
-    while num_updates < args.n_iter and not agent.done():
+    while train_steps < args.n_steps and not agent.done():
+        env.seed(1234)
         state = env.reset()
         episode_reward = 0.0
         for path in range(args.max_path_length):
 
-            if agent.updatable():
+            while agent.updatable():
                 update(args, env, agent, opt)
                 num_updates += 1
-                denom = 1 if len(update_rewards) == 0 else len(update_rewards)
-                train_rewards.append(sum(update_rewards) / denom)
-                if verbose:
-                    print_stats('Train', update_rewards, num_updates, time() - train_start, train_steps)
-                update_rewards = []
 
             train_steps += 1
+            if train_steps % args.print_interval == 0:
+                denom = max(1, len(iter_reward))
+                train_rewards.append(sum(iter_reward) / denom)
+                if verbose:
+                    n_iter = train_steps // args.print_interval
+                    timing = time() - train_start
+                    print_stats('Train', iter_reward, n_iter, timing, train_steps)
+                iter_reward = []
+
             action, action_info = agent.act(state)
             if args.render:
                 env.render()
@@ -59,8 +64,7 @@ def train(args, env, agent, opt, update, verbose=True):
                 break
             state = next_state
         agent.new_episode(done)
-        update_rewards.append(episode_reward)
-    # Plot the train_rewards
+        iter_reward.append(episode_reward)
     return train_rewards
 
 

@@ -8,7 +8,7 @@ from collections import Iterable
 from functools import reduce
 
 
-EPSILON = 1e-8
+EPSILON = 1e-5
 
 def numel(x):
     if hasattr(x, 'shape'):

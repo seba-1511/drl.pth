@@ -15,7 +15,7 @@ from functools import reduce
 from argparse import ArgumentParser
 from torch import optim
 
-from algos import A3C, Reinforce, ActorCriticReinforce, TRPO, Random
+from algos import A3C, Reinforce, ActorCriticReinforce, TRPO, Random, PPO
 from models import FC, LSTM, Atari
 from policies import StochasticPolicy, DropoutPolicy
 from env_converter import SingleActionEnvConverter, MultiActionEnvConverter, SoftmaxEnvConverter, StateNormalizer, numel
@@ -42,7 +42,7 @@ def parse_args():
                         default=0.01, help='The learning rate')
     parser.add_argument('--solved', dest='solved', type=float,
                         default=1000.0, help='Threshold at which the environment is considered solved.')
-    parser.add_argument('--n_iter', dest='n_iter', type=int,
+    parser.add_argument('--n_steps', dest='n_steps', type=int,
                         default=300, help='Number of updates to be performed.')
     parser.add_argument('--n_test_iter', dest='n_test_iter', type=int,
                         default=100, help='Number of episodes to test on.')
@@ -52,6 +52,8 @@ def parse_args():
                         default=1500, help='Number of steps before updating parameters.')
     parser.add_argument('--max_path_length', dest='max_path_length', type=int,
                         default=15000, help='Max length for a trajectory/episode.')
+    parser.add_argument('--print_interval', dest='print_interval', type=int,
+                        default=500, help='Number of steps between each print summary.')
     parser.add_argument('--momentum', dest='momentum', type=float,
                         default=0.0, help='Default momentum value.')
     parser.add_argument('--gae', dest='gae', type=bool,
@@ -78,6 +80,7 @@ def get_algo(name):
         'reinforce': Reinforce,
         'acreinforce': ActorCriticReinforce,
         'trpo': TRPO,
+        'ppo': PPO,
         'a3c': A3C,
         'random': Random,
     }
@@ -114,8 +117,8 @@ def get_setup(seed_offset=0):
     th.manual_seed(args.seed)
     model = get_policy(args.policy)(env.state_size,
                                     # env.action_size, layer_sizes=(8, 8),
-                                    # env.action_size, layer_sizes=(64, 64),
-                                    env.action_size, layer_sizes=(128, 128),
+                                    env.action_size, layer_sizes=(64, 64),
+                                    # env.action_size, layer_sizes=(128, 128),
                                     dropout=args.dropout)
     if args.dropout > 0.0:
         policy = DropoutPolicy(model)

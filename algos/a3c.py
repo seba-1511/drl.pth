@@ -14,10 +14,11 @@ from .algos_utils import discount, normalize, generalized_advantage_estimations
 
 class A3C(ActorCriticReinforce):
 
-    def __init__(self, policy=None, critic=None, gamma=0.99, update_frequency=1000, entropy_weight=0.0001, grad_norm=40.0, tau=1.0):
+    def __init__(self, policy=None, critic=None, gamma=0.99, update_frequency=1000, entropy_weight=0.0001, critic_weight=0.5, grad_norm=40.0, tau=1.0):
         super(A3C, self).__init__(policy=policy, gamma=gamma, 
                                   update_frequency=update_frequency,
-                                  entropy_weight=entropy_weight)
+                                  entropy_weight=entropy_weight,
+                                  critic_weight=critic_weight)
         if critic is None:
             critic = nn.Linear(self.policy.model.critic_state_size, 1)
             critic.bias.data.fill_(0)
@@ -44,7 +45,7 @@ class A3C(ActorCriticReinforce):
                 critic_loss = 0.0
                 for action, reward, critic, gae in zip(actions, rewards, critics, gaes):
                     advantage = V(T([reward])) - critic
-                    critic_loss += 0.5 * advantage**2
+                    critic_loss += self.critic_weight * advantage**2
                     action.reinforce(gae.data[0,0])
                 loss = [entropy_loss, 0.5 * critic_loss] + actions
                 backward(loss, [th.ones(1), th.ones(1)] + [None for _ in actions])

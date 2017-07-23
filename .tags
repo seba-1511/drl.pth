@@ -10,7 +10,7 @@ ActorCriticReinforce	algos/reinforce_with_critic.py	/^class ActorCriticReinforce
 Atari	models.py	/^class Atari(BasePolicyModel):$/;"	c
 BaseAgent	algos/base.py	/^class BaseAgent(object):$/;"	c
 BasePolicyModel	models.py	/^class BasePolicyModel(nn.Module):$/;"	c
-DROPOUT	Makefile	/^DROPOUT=0.9$/;"	m
+DROPOUT	Makefile	/^DROPOUT=0.0$/;"	m
 DropoutPolicy	policies.py	/^class DropoutPolicy(nn.Module):$/;"	c
 ENV	Makefile	/^ENV=CartPole-v0$/;"	m
 EPSILON	algos/algos_utils.py	/^EPSILON = 1e-8$/;"	v
@@ -18,7 +18,7 @@ EPSILON	env_converter.py	/^EPSILON = 1e-8$/;"	v
 EnvConverter	env_converter.py	/^class EnvConverter(object):$/;"	c
 FC	models.py	/^class FC(BasePolicyModel):$/;"	c
 LOG2PI	algos/algos_utils.py	/^LOG2PI = log(2.0 * PI)$/;"	v
-LR	Makefile	/^LR=0.003$/;"	m
+LR	Makefile	/^LR=0.001$/;"	m
 LSTM	models.py	/^class LSTM(BasePolicyModel):$/;"	c
 LinearVF	algos/algos_utils.py	/^class LinearVF(object):$/;"	c
 MultiActionEnvConverter	env_converter.py	/^class MultiActionEnvConverter(EnvConverter):$/;"	c
@@ -27,6 +27,7 @@ N_ITER	Makefile	/^N_ITER=100$/;"	m
 OPT	Makefile	/^OPT=RMSprop$/;"	m
 PI	algos/algos_utils.py	/^PI = 2.141592654$/;"	v
 POLICY	Makefile	/^POLICY=fc$/;"	m
+PPO	algos/ppo.py	/^class PPO(ActorCriticReinforce):$/;"	c
 Random	algos/random.py	/^class Random(BaseAgent):$/;"	c
 Reinforce	algos/reinforce.py	/^class Reinforce(BaseAgent):$/;"	c
 SingleActionEnvConverter	env_converter.py	/^class SingleActionEnvConverter(EnvConverter):$/;"	c
@@ -39,6 +40,7 @@ __call__	algos/algos_utils.py	/^    def __call__(self, x):$/;"	m	class:LinearVF	
 __getattr__	env_converter.py	/^    def __getattr__(self, name):$/;"	m	class:EnvConverter	file:
 __init__	algos/a3c.py	/^    def __init__(self, policy=None, critic=None, gamma=0.99, update_frequency=1000, entropy_weight=0.0001, grad_norm=40.0, tau=1.0):$/;"	m	class:A3C
 __init__	algos/algos_utils.py	/^    def __init__(self, num_in, num_out):$/;"	m	class:LinearVF
+__init__	algos/ppo.py	/^    def __init__(self, policy=None, critic=None, num_epochs=10, batch_size=64,$/;"	m	class:PPO
 __init__	algos/random.py	/^    def __init__(self, policy, *args, **kwargs):$/;"	m	class:Random
 __init__	algos/reinforce.py	/^    def __init__(self, policy=None, baseline=0.5, gamma=0.99, update_frequency=1000, entropy_weight=0.0001):$/;"	m	class:Reinforce
 __init__	algos/reinforce_with_critic.py	/^    def __init__(self, policy=None, critic=None, gamma=0.99, update_frequency=1000, entropy_weight=0.0001):$/;"	m	class:ActorCriticReinforce
@@ -93,8 +95,12 @@ get_algo	utils.py	/^def get_algo(name):$/;"	f
 get_opt	utils.py	/^def get_opt(name):$/;"	f
 get_policy	utils.py	/^def get_policy(name):$/;"	f
 get_setup	utils.py	/^def get_setup(seed_offset=0):$/;"	f
+get_state	models.py	/^    def get_state(self):$/;"	m	class:Atari
+get_state	models.py	/^    def get_state(self):$/;"	m	class:BasePolicyModel
+get_state	models.py	/^    def get_state(self):$/;"	m	class:LSTM
 get_update	algos/a3c.py	/^    def get_update(self):$/;"	m	class:A3C
 get_update	algos/base.py	/^    def get_update(self):$/;"	m	class:BaseAgent
+get_update	algos/ppo.py	/^    def get_update(self):$/;"	m	class:PPO
 get_update	algos/reinforce.py	/^    def get_update(self):$/;"	m	class:Reinforce
 get_update	algos/reinforce_with_critic.py	/^    def get_update(self):$/;"	m	class:ActorCriticReinforce
 get_update	algos/trpo.py	/^    def get_update(self):$/;"	m	class:TRPO
@@ -106,6 +112,7 @@ learn	algos/reinforce_with_critic.py	/^    def learn(self, state, action, reward
 learn	algos/trpo.py	/^    def learn(self, state, action, reward, next_state, done, info=None):$/;"	m	class:TRPO
 new_episode	algos/a3c.py	/^    def new_episode(self, terminated=False):$/;"	m	class:A3C
 new_episode	algos/base.py	/^    def new_episode(self, terminated=False):$/;"	m	class:BaseAgent
+new_episode	algos/ppo.py	/^    def new_episode(self, terminated=False):$/;"	m	class:PPO
 new_episode	algos/reinforce.py	/^    def new_episode(self, terminated=False):$/;"	m	class:Reinforce
 new_episode	algos/reinforce_with_critic.py	/^    def new_episode(self, terminated=False):$/;"	m	class:ActorCriticReinforce
 new_episode	algos/trpo.py	/^    def new_episode(self, terminated=False):$/;"	m	class:TRPO
@@ -139,6 +146,7 @@ test	benchmark.py	/^def test(args, env, agent):$/;"	f
 train	benchmark.py	/^def train(args, env, agent, opt, update, verbose=True):$/;"	f
 train_update	benchmark.py	/^def train_update(args, env, agent, opt):$/;"	f
 updatable	algos/base.py	/^    def updatable(self):$/;"	m	class:BaseAgent
+updatable	algos/ppo.py	/^    def updatable(self):$/;"	m	class:PPO
 updatable	algos/reinforce.py	/^    def updatable(self):$/;"	m	class:Reinforce
 updatable	algos/trpo.py	/^    def updatable(self):$/;"	m	class:TRPO
 update	algos/base.py	/^    def update(self, update):$/;"	m	class:BaseAgent

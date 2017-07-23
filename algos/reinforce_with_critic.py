@@ -14,11 +14,12 @@ from .algos_utils import discount, normalize
 
 class ActorCriticReinforce(Reinforce):
 
-    def __init__(self, policy=None, critic=None, gamma=0.99, update_frequency=1000, entropy_weight=0.0001):
+    def __init__(self, policy=None, critic=None, gamma=0.99, update_frequency=1000, entropy_weight=0.0001, critic_weight=0.5):
         super(ActorCriticReinforce, self).__init__(policy=policy, gamma=gamma, update_frequency=update_frequency, entropy_weight=entropy_weight)
         if critic is None:
             critic = nn.Linear(self.policy.model.critic_state_size, 1)
         self.critic = critic
+        self.critic_weight = critic_weight
 
     def _reset(self):
         super(ActorCriticReinforce, self)._reset()
@@ -56,7 +57,7 @@ class ActorCriticReinforce(Reinforce):
                 critic_loss = 0.0
                 for action, reward, critic in zip(actions, rewards, critics):
                     action.reinforce(reward - critic.data[0, 0])
-                    critic_loss += F.smooth_l1_loss(critic, V(T([reward])))
+                    critic_loss -= self.critic_weight * F.smooth_l1_loss(critic, V(T([reward])))
                 loss = [entropy_loss, critic_loss] + actions
                 backward(loss, [th.ones(1), th.ones(1)] + [None for _ in actions])
         self._reset()
