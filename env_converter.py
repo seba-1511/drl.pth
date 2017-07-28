@@ -8,7 +8,9 @@ from collections import Iterable
 from functools import reduce
 
 
-EPSILON = 1e-5
+EPSILON = 1e-6
+HUGE_VALUE = 1e7
+
 
 def numel(x):
     if hasattr(x, 'shape'):
@@ -21,6 +23,10 @@ def numel(x):
 
 
 def clip(val, minval, maxval):
+    if val > HUGE_VALUE:
+        val = HUGE_VALUE
+    if val < EPSILON:
+        val = EPSILON
     if val < minval:
         return minval
     if val > maxval:
@@ -55,6 +61,9 @@ class EnvConverter(object):
             self.is_discrete = False
             self.action_size = numel(env.action_space.sample())
 
+
+        self.actions = []
+
     def __getattr__(self, name):
         if name == 'step':
             return self.step
@@ -69,6 +78,11 @@ class EnvConverter(object):
             action = self._convert(action)
         else:
             action = self._clip(action)
+        self.actions.append(action)
+        if len(self.actions) > 1000:
+            import numpy as np
+            print('env actions stats: ', np.mean(self.actions, 0), np.min(self.actions, 0), np.max(self.actions, 0))
+            self.actions = []
         return self.env.step(action)
 
     def _clip(self, action):
@@ -90,7 +104,7 @@ class EnvConverter(object):
 class StateNormalizer(EnvConverter):
 
     """
-    Normalizes the state using a simple moving average
+    Normalizes the state using a simple moving average.
     """
 
     def __init__(self, env, memory_size=100, per_dimension=False):

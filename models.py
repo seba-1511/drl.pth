@@ -76,9 +76,16 @@ class FC(BasePolicyModel):
         super(FC, self).__init__()
         layers = [nn.Linear(num_in, layer_sizes[0])]
         for i, l in enumerate(layer_sizes[1:]):
-            layer = nn.Linear(layer_sizes[i - 1], l)
+            layer = nn.Linear(layer_sizes[i - 1], l, bias=False)
+            # Init following normc from baselines.PPO
+            out = th.randn(layer.weight.size())
+            out *= (1.0/(out**2).sum(1)**0.5).expand_as(layer.weight)
+            layer.weight.data = out
             layers.append(layer)
-        layer = nn.Linear(layer_sizes[-1], num_out)
+        layer = nn.Linear(layer_sizes[-1], num_out, bias=False)
+        out = th.randn(layer.weight.size())
+        out *= (0.01/(out**2).sum(1)**0.5).expand_as(layer.weight)
+        layer.weight.data = out
         layers.append(layer)
         if activation is None:
             activation = F.tanh
@@ -89,7 +96,6 @@ class FC(BasePolicyModel):
         self.layers = layers
         self._track_params(layers)
         self.critic_state_size = layer_sizes[-1]
-        print('Optimizing ', len(list(self.parameters())), ' parameters')
 
     def forward(self, x):
         for l in self.layers[:-1]:
@@ -126,7 +132,6 @@ class LSTM(BasePolicyModel):
         self._track_params(self.lstms)
         self.reset_state()
         self.critic_state_size = layer_sizes[-1]
-        print('Optimizing ', len(list(self.parameters())), ' parameters')
 
     def forward(self, x):
         for lstm, hidden in zip(self.lstms[:-1], self.hiddens[:-1]):

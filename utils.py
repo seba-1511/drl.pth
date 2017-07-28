@@ -7,7 +7,6 @@ from __future__ import print_function
 
 import numpy as np
 import gym
-import mj_transfer
 import torch as th
 
 from collections import Iterable
@@ -53,7 +52,7 @@ def parse_args():
     parser.add_argument('--max_path_length', dest='max_path_length', type=int,
                         default=15000, help='Max length for a trajectory/episode.')
     parser.add_argument('--print_interval', dest='print_interval', type=int,
-                        default=500, help='Number of steps between each print summary.')
+                        default=4000, help='Number of steps between each print summary.')
     parser.add_argument('--momentum', dest='momentum', type=float,
                         default=0.0, help='Default momentum value.')
     parser.add_argument('--gae', dest='gae', type=bool,

@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function
 
-import numpy as np
-import mj_transfer
-import randopt as ro
 import gym; gym.make('PongDeterministic-v4') # Somehow, required to init an env before import torch.
 import torch as th
 
@@ -34,7 +31,6 @@ def train(args, env, agent, opt, update, verbose=True):
     train_steps = 0
     num_updates = 0
     while train_steps < args.n_steps and not agent.done():
-        env.seed(1234)
         state = env.reset()
         episode_reward = 0.0
         for path in range(args.max_path_length):

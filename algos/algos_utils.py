@@ -6,10 +6,11 @@ from __future__ import print_function
 """
 
 import torch as th
+from torch.autograd import Variable as V
 from math import log
 
-EPSILON = 1e-8
-PI = 2.141592654
+EPSILON = 1e-6
+PI = 3.141592654
 LOG2PI = log(2.0 * PI)
 
 
@@ -46,7 +47,7 @@ class LinearVF(object):
 
 
 def discount(rewards, gamma):
-    R = 0
+    R = 0.0
     discounted = []
     for r in reversed(rewards):
         R = r + gamma * R
@@ -54,9 +55,9 @@ def discount(rewards, gamma):
     return th.Tensor(discounted)
 
 def generalized_advantage_estimations(rewards, critics, gamma, tau):
-    gaes = [0.0, ]
-    gae = 0.0
-    prev_c = 0.0
+    gaes = [V(th.zeros(1)), ]
+    gae = V(th.zeros(1))
+    prev_c = V(th.zeros(1))
     for r, c in zip(rewards, critics):
         delta = r + gamma * prev_c - c
         gae = gae * gamma * tau + delta
@@ -65,7 +66,14 @@ def generalized_advantage_estimations(rewards, critics, gamma, tau):
     return gaes
 
 def normalize(tensor):
-    return (tensor - th.mean(tensor)) / (th.std(tensor) + EPSILON)
+    if tensor.size(0) == 1:
+        return tensor
+    mean = tensor.mean()
+    std = tensor.std()
+    if isinstance(mean, float):
+        return (tensor - mean) / (std + EPSILON)
+    else:
+        return (tensor - mean.expand_as(tensor)) / (std.expand_as(tensor) + EPSILON)
 
 def gauss_log_prob(means, logstds, x):
     var = th.exp(2 * logstds)
@@ -73,6 +81,10 @@ def gauss_log_prob(means, logstds, x):
     bottom = (2*var) - 0.5 * LOG2PI - logstds
     gp = top / bottom 
     return th.sum(gp, dim=1)
+
+def logp(x, mean, std):
+    out = 0.5 * ((x - mean) / (std))**2 + 0.5 * LOG2PI + th.log(std)
+    return -out
 
 def dot_not_flat(A, B):
     """Equivalent of flattening matrices A, B and doing a vector product."""

@@ -3,8 +3,6 @@
 import torch as th
 from torch import nn
 
-from functools import reduce
-
 
 class StochasticPolicy(nn.Module):
 
@@ -19,8 +17,9 @@ class StochasticPolicy(nn.Module):
         super(StochasticPolicy, self).__init__()
         self.model = model
         self.params = nn.ParameterList(list(model.parameters()))
-        self.logstd = nn.Parameter(0.01 * th.rand(model.num_out))
+        self.logstd = nn.Parameter(th.zeros(model.num_out))
         self.params.extend([self.logstd, ])
+        print('Optimizing ', len(list(self.parameters())), ' parameters')
 
     def forward(self, x):
         x = self.model(x)
@@ -46,6 +45,7 @@ class DropoutPolicy(nn.Module):
         self.model = model
         self.params = nn.ParameterList(list(model.parameters()))
         self.num_samples = num_samples
+        print('Optimizing ', len(list(self.parameters())), ' parameters')
 
     def forward(self, x):
         samples = []

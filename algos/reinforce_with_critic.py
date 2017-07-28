@@ -17,7 +17,11 @@ class ActorCriticReinforce(Reinforce):
     def __init__(self, policy=None, critic=None, gamma=0.99, update_frequency=1000, entropy_weight=0.0001, critic_weight=0.5):
         super(ActorCriticReinforce, self).__init__(policy=policy, gamma=gamma, update_frequency=update_frequency, entropy_weight=entropy_weight)
         if critic is None:
-            critic = nn.Linear(self.policy.model.critic_state_size, 1)
+            critic = nn.Linear(self.policy.model.critic_state_size, 1, bias=False)
+            out = th.randn(critic.weight.size())
+            # PPO Init
+            out *= (1.0/(out**2).sum(1)**0.5).expand_as(critic.weight)
+            critic.weight.data = out
         self.critic = critic
         self.critic_weight = critic_weight
 
