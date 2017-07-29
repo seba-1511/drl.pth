@@ -78,11 +78,6 @@ class EnvConverter(object):
             action = self._convert(action)
         else:
             action = self._clip(action)
-        self.actions.append(action)
-        if len(self.actions) > 1000:
-            import numpy as np
-            print('env actions stats: ', np.mean(self.actions, 0), np.min(self.actions, 0), np.max(self.actions, 0))
-            self.actions = []
         return self.env.step(action)
 
     def _clip(self, action):

@@ -17,7 +17,8 @@ class StochasticPolicy(nn.Module):
         super(StochasticPolicy, self).__init__()
         self.model = model
         self.params = nn.ParameterList(list(model.parameters()))
-        self.logstd = nn.Parameter(th.zeros(model.num_out))
+        # self.logstd = nn.Parameter(th.zeros(model.num_out))
+        self.logstd = nn.Parameter(-5.0 + th.zeros(model.num_out))
         self.params.extend([self.logstd, ])
         print('Optimizing ', len(list(self.parameters())), ' parameters')
 

@@ -34,6 +34,7 @@ class PPO(ActorCriticReinforce):
         self.states = [[], ]
         self.means = [[], ]
         self.logstds = [[], ]
+        self.advantages = [[], ]
         self.epoch_optimized = 0
 
     def act(self, state):
@@ -93,6 +94,7 @@ class PPO(ActorCriticReinforce):
         idx = int(random() * (self.update_frequency // self.batch_size))
         batch_start = idx * self.batch_size
         batch_end = batch_start + self.batch_size
+
         iterator = zip(self.states[batch_start:batch_end],
                        self.actions[batch_start:batch_end],
                        self.rewards[batch_start:batch_end],
@@ -100,33 +102,42 @@ class PPO(ActorCriticReinforce):
                        self.means[batch_start:batch_end],
                        self.logstds[batch_start:batch_end],
                        self.critics[batch_start:batch_end],
-                       )
+        )
+
+        # states = self.states[batch_start:batch_end]
+        # old_actions = self.actions[batch_start:batch_end]
+        # rewards = self.rewards[batch_start:batch_end]
+        # advantages = self.advantages[batch_start:batch_end]
+        # old_means = self.means[batch_start:batch_end]
+        # old_logstds = self.logstds[batch_start:batch_end]
+        # old_critics = self.critics[batch_start:batch_end]
+
         loss = 0.0
         for state, old_action, reward, advantage, old_mean, old_logstd, old_critic in iterator:
             _, (new_action, entropy, new_critic, new_mean, new_logstd) = self.act(state)
-            entropy = new_logstd + 0.5 * V(self.log2pie.expand_as(new_logstd))
             old_std, new_std = th.exp(old_logstd), th.exp(new_logstd)
-            kl = new_logstd - old_logstd + (old_std**2 + (old_mean - new_mean)**2) / (2.0 * new_std**2) - 0.5
-            log_new_action = logp(new_action, new_mean, th.exp(new_logstd))
-            log_old_action = logp(old_action, old_mean, th.exp(old_logstd))
+            # kl = new_logstd - old_logstd + (old_std**2 + (old_mean - new_mean)**2) / (2.0 * new_std**2) - 0.5
+            log_new_action = logp(new_action, new_mean, new_std)
+            log_old_action = logp(old_action, old_mean, old_std)
             surrogate = th.exp(log_new_action - log_old_action).mean()
-            ratios += surrogate
+            # ratios += surrogate
             clamped = th.clamp(surrogate, 1 - self.loss_clip, 1 + self.loss_clip)
-            clip_loss = th.min(surrogate * advantage, clamped * advantage).mean()
+            clip_loss = (surrogate * advantage).mean()
+            # clip_loss = th.min(surrogate * advantage, clamped * advantage).mean()
             # Apply same trust-region on critic loss
             critic_loss = ((reward - new_critic)**2).mean()
             critic_clamped = V(T([0.0]))
-            critic_clamped += th.clamp(old_critic - new_critic, -self.loss_clip, self.loss_clip) + old_critic 
+            # critic_clamped += th.clamp(old_critic - new_critic, -self.loss_clip, self.loss_clip) + old_critic 
             critic_clamped = critic_clamped**2
             critic_loss = th.max(critic_clamped, critic_loss).mean()
             critic_loss *= self.critic_weight
 
             entropy_loss = self.entropy_weight * entropy.mean()
-            tot_s += clip_loss
-            tot_e += entropy_loss
-            tot_c += critic_loss
-            tot_kl += kl
-            tot_cl += clamped
+            # tot_s += clip_loss
+            # tot_e += entropy_loss
+            # tot_c += critic_loss
+            # tot_kl += kl
+            # tot_cl += clamped
             loss += clip_loss + critic_loss - entropy_loss
         loss /= self.batch_size
         # Retain graph until batches can be dissmissed
@@ -136,14 +147,15 @@ class PPO(ActorCriticReinforce):
             loss.backward(retain_variables=True)
 
         # NOTE: Don't reset here, since we need to compute several updates
-        if self.epoch_optimized == 1:
-            print('ratios: ', ratios.data[0] / self.batch_size)
-            print('clamped loss: ', tot_cl.data[0] / self.batch_size)
-            print('surrogate loss: ', tot_s.data[0] / self.batch_size)
-            print('entropy loss: ', tot_e.data[0] / self.batch_size)
-            print('critic_loss:', tot_c.data[0] / self.batch_size)
-            print('kl:', tot_kl.data[0] / self.batch_size)
-            print(' ')
+        # if self.epoch_optimized == 1:
+            # print('ratios: ', ratios.data[0] / self.batch_size)
+            # print('clamped loss: ', tot_cl.data[0] / self.batch_size)
+            # print('surrogate loss: ', tot_s.data[0] / self.batch_size)
+            # print('entropy loss: ', tot_e.data[0] / self.batch_size)
+            # print('critic_loss:', tot_c.data[0] / self.batch_size)
+            # print('kl:', tot_kl.data[0] / self.batch_size)
+            # print(' ')
+        # return None
         return [p.grad.clone() for p in self.parameters()]
 
     def updatable(self):

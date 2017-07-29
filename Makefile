@@ -2,11 +2,11 @@
 ALGO=ppo
 #ALGO=reinforce
 ENV=CartPole-v0
-ENV=InvertedPendulum-v1
-N_STEPS=100000
+#ENV=InvertedPendulum-v1
+N_STEPS=100000000
 TEST_N_STEPS=100
 OPT=SGD
-LR=0.005
+LR=0.0005
 NUM_WORKERS=8
 POLICY=fc
 #POLICY=lstm
