@@ -14,10 +14,10 @@ from functools import reduce
 from argparse import ArgumentParser
 from torch import optim
 
-from algos import A3C, Reinforce, ActorCriticReinforce, TRPO, Random, PPO
-from models import FC, LSTM, Atari
-from policies import StochasticPolicy, DropoutPolicy
-from env_converter import SingleActionEnvConverter, MultiActionEnvConverter, SoftmaxEnvConverter, StateNormalizer, numel
+from .algos import A3C, Reinforce, ActorCriticReinforce, TRPO, Random, PPO
+from .models import FC, LSTM, Atari
+from .policies import StochasticPolicy, DropoutPolicy
+from .env_converter import SingleActionEnvConverter, MultiActionEnvConverter, SoftmaxEnvConverter, StateNormalizer, numel
 
 
 def parse_args():

@@ -8,7 +8,7 @@ import torch as th
 from gym import wrappers
 from time import time
 
-from utils import get_setup
+from drl.utils import get_setup
 
 def print_stats(name, rewards, n_iters, timing, steps):
     denom = max(len(rewards), 1)
