@@ -79,12 +79,13 @@ class FC(BasePolicyModel):
             layer = nn.Linear(layer_sizes[i - 1], l, bias=False)
             # Init following normc from baselines.PPO
             out = th.randn(layer.weight.size())
-            out *= (1.0/(out**2).sum(1)**0.5).expand_as(layer.weight)
+            out *= (1.0/(out**2).sum(1, keepdim=True)**0.5).expand_as(layer.weight)
             layer.weight.data = out
             layers.append(layer)
         layer = nn.Linear(layer_sizes[-1], num_out, bias=False)
+        # Init following normc from baselines.PPO
         out = th.randn(layer.weight.size())
-        out *= (0.01/(out**2).sum(1)**0.5).expand_as(layer.weight)
+        out *= (0.01/(out**2).sum(1, keepdim=True)**0.5).expand_as(layer.weight)
         layer.weight.data = out
         layers.append(layer)
         if activation is None:
