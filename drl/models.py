@@ -3,6 +3,7 @@
 import numpy as np
 import torch as th
 from torch import nn
+from torch import Tensor as T
 from torch.nn import functional as F
 from torch.autograd import Variable as V
 
@@ -51,10 +52,11 @@ class Critic(nn.Module):
 
 class ConstantCritic(nn.Module):
     def __init__(self, value=0.0):
-        self.value = 0.0
+        super(ConstantCritic, self).__init__()
+        self.value = V(th.zeros(1, 1) + value) 
 
     def forward(self, x):
-        return V(self.value)
+        return self.value
 
 
 def FC2(state_size, action_size, layer_sizes=[128, 128], dropout=0.0):

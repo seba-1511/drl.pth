@@ -2,12 +2,12 @@
 ALGO=ppo
 ALGO=reinforce
 ENV=CartPole-v0
-ENV=InvertedPendulum-v1
-ENV=Ant-v1
+#ENV=InvertedPendulum-v1
+#ENV=Ant-v1
 N_STEPS=100000000
 TEST_N_STEPS=100
 OPT=Adam
-LR=0.0001
+LR=0.01
 NUM_WORKERS=8
 MODEL=fc
 #MODEL=lstm

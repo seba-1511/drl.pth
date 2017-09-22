@@ -62,7 +62,6 @@ class Reinforce(BaseAgent):
         TODO:
             * Batch inputs
             * entropy
-            * Continuous on InvertedPendulum and Ant-v1
             * lstm
         """
         for actions_ep, rewards_ep, critics_ep in zip(self.actions, self.rewards, self.critics):
