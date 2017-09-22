@@ -34,6 +34,12 @@ class Policy(nn.Module):
         action = Action(raw=activations)
         return action
 
+class StochasticPolicy(nn.Module):
+
+    """ Adds a exploration to a continuous policy. """
+
+    pass
+
 
 class DiscretePolicy(nn.Module):
 
