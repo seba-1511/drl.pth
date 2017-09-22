@@ -13,11 +13,12 @@ from collections import Iterable
 from functools import reduce
 from argparse import ArgumentParser
 from torch import optim
+from gym.spaces import Discrete
 
-from .algos import A3C, Reinforce, ActorCriticReinforce, TRPO, Random, PPO
-from .models import FC, LSTM, Atari
-from .policies import StochasticPolicy, DropoutPolicy
-from .env_converter import SingleActionEnvConverter, MultiActionEnvConverter, SoftmaxEnvConverter, StateNormalizer, numel
+from .algos import Reinforce, Random
+from .models import FC2
+from .policies import StochasticPolicy, DropoutPolicy, DiscretePolicy, Policy
+from .env_converter import StateNormalizer,  numel
 
 
 def parse_args():
@@ -31,8 +32,8 @@ def parse_args():
                         default='InvertedPendulum-v1', help='Name of the environment to learn.')
     parser.add_argument('--n_proc', dest='n_proc', type=int,
                         default=8, help='Number of processes (for async only)')
-    parser.add_argument('--policy', dest='policy', type=str,
-                        default='fc', help='What kind of policy to use')
+    parser.add_argument('--model', dest='model', type=str,
+                        default='fc', help='What kind of model to use')
     parser.add_argument('--opt', dest='opt', type=str,
                         default='SGD', help='What kind of optimizer to use')
     parser.add_argument('--dropout', dest='dropout', type=float,
@@ -46,13 +47,13 @@ def parse_args():
     parser.add_argument('--n_test_iter', dest='n_test_iter', type=int,
                         default=100, help='Number of episodes to test on.')
     parser.add_argument('--seed', dest='seed', type=int,
-                        default=1234, help='Random generator seed')
+                        default=543, help='Random generator seed')
     parser.add_argument('--update_frequency', dest='update_frequency', type=int,
                         default=1500, help='Number of steps before updating parameters.')
     parser.add_argument('--max_path_length', dest='max_path_length', type=int,
                         default=15000, help='Max length for a trajectory/episode.')
     parser.add_argument('--print_interval', dest='print_interval', type=int,
-                        default=4000, help='Number of steps between each print summary.')
+                        default=1000, help='Number of steps between each print summary.')
     parser.add_argument('--momentum', dest='momentum', type=float,
                         default=0.0, help='Default momentum value.')
     parser.add_argument('--gae', dest='gae', type=bool,
@@ -77,54 +78,55 @@ def parse_args():
 def get_algo(name):
     algos = {
         'reinforce': Reinforce,
-        'acreinforce': ActorCriticReinforce,
-        'trpo': TRPO,
-        'ppo': PPO,
-        'a3c': A3C,
         'random': Random,
     }
     return algos[name]
 
 
-def get_policy(name):
-    policies = {
-        'fc': FC,
-        'lstm': LSTM,
-        'atari': Atari,
+def get_model(name):
+    model = {
+        'fc': FC2,
     }
-    return policies[name]
+    return model[name]
 
 
 def get_opt(name):
-    policies = {
+    opts = {
         'SGD': optim.SGD,
         'Adam': optim.Adam,
         'Adagrad': optim.Adagrad,
         'RMSprop': optim.RMSprop,
     }
-    return policies[name]
+    return opts[name]
+
+
+def is_discrete(env):
+    return isinstance(env.action_space, Discrete)
 
 
 def get_setup(seed_offset=0):
     args = parse_args()
     args.seed += seed_offset
     env = gym.make(args.env)
-    env = MultiActionEnvConverter(env)
-    env = StateNormalizer(env)
+#    env = StateNormalizer(env)
     env.seed(args.seed)
     np.random.seed(args.seed)
     th.manual_seed(args.seed)
-    model = get_policy(args.policy)(env.state_size,
-                                    # env.action_size, layer_sizes=(8, 8),
-                                    env.action_size, layer_sizes=(64, 64),
-                                    # env.action_size, layer_sizes=(128, 128),
-                                    dropout=args.dropout)
-    if args.dropout > 0.0:
-        policy = DropoutPolicy(model)
-    else:
-        policy = StochasticPolicy(model)
+    model, critic = get_model(args.model)(numel(env.observation_space.shape),
+                                          # env.action_size, layer_sizes=(8, 8),
+                                          #env.action_size, layer_sizes=(64, 64),
+                                          env.action_space.n, layer_sizes=(128, 128),
+                                          dropout=args.dropout)
+    policy = Policy(model)
+    #if args.dropout > 0.0:
+    #    policy = DropoutPolicy(policy)
+    #else:
+    #    policy = StochasticPolicy(policy)
+    if is_discrete(env):
+        policy = DiscretePolicy(policy)
     policy.train()
     agent = get_algo(args.algo)(policy=policy, gamma=args.gamma,
+                                critic=critic,
                                 update_frequency=args.update_frequency)
     opt = None
     if agent.parameters() is not None:

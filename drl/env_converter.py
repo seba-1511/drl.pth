@@ -103,6 +103,7 @@ class StateNormalizer(EnvConverter):
     """
 
     def __init__(self, env, memory_size=100, per_dimension=False):
+        super(StateNormalizer, self).__init__(env)
         self.env = env
         self.per_dimension = per_dimension
         self.per_dimension = True
@@ -130,83 +131,3 @@ class StateNormalizer(EnvConverter):
         return self.normalize(next_state)
 
 
-class SingleActionEnvConverter(EnvConverter):
-
-    """
-    A `gym.Env` wrapper to enable continuous agents to work in discrete
-    worlds.
-
-    There is a single dimensional input, which is normalized and used to
-    determine which action to choose.
-
-    Roughly:
-    action = normalized(input) * num_actions
-    """
-
-    def __init__(self, env):
-        self.env = env
-
-        if isinstance(env.observation_space, Discrete):
-            self.state_size = 1
-        else:
-            self.state_size = numel(env.observation_space.shape)
-
-        if isinstance(self.env.action_space, Discrete):
-            self.is_discrete = True
-            self.action_size = 1
-            self.max_action = env.action_space.n - 1
-        else:
-            self.is_discrete = False
-            self.action_size = numel(env.action_space.sample())
-
-    def _convert(self, action):
-        if isinstance(action, np.ndarray):
-            action *= self.max_action
-            action = np.abs(action.astype(int))
-            action = np.clip(action, 0, self.max_action)
-            action = action[0, 0]
-        elif isinstance(action, list):
-            action = action[0] * self.max_action
-            action = max(min(abs(int(action)), self.max_action), 0)
-        else:
-            action = max(min(int(action), self.max_action), 0)
-        return int(action)
-
-
-class MultiActionEnvConverter(EnvConverter):
-
-    """
-    A `gym.Env` wrapper to enable continuous agents to work in discrete
-    worlds.
-
-    Each discrete action is assigned a dimension, and the executed action 
-    is given by the max value of the input.
-
-    Roughly: 
-    action = argmax(input)
-    """
-
-    def _convert(self, action):
-        if isinstance(action, int):
-            return action
-        return np.argmax(action)
-
-
-class SoftmaxEnvConverter(EnvConverter):
-
-    """
-    A `gym.Env` wrapper to enable continuous agents to work in discrete
-    worlds.
-
-    Each discrete action is assigned a dimension, and the executed action 
-    is sampled according to a softmax on the weights given by the policy.
-
-    Roughly: 
-    action = choice(num_actions, p=softmax(input))
-    """
-
-    def _convert(self, action):
-        if isinstance(action, int):
-            return action
-        action = np.array(action).reshape(-1)
-        return int(choice(self.actions, p=softmax(action)))
