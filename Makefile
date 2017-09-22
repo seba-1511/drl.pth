@@ -3,6 +3,7 @@ ALGO=ppo
 ALGO=reinforce
 ENV=CartPole-v0
 ENV=InvertedPendulum-v1
+ENV=Ant-v1
 N_STEPS=100000000
 TEST_N_STEPS=100
 OPT=Adam
