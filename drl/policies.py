@@ -31,28 +31,44 @@ class Policy(nn.Module):
 
     def forward(self, x):
         activations = self.model(x)
-        action = Action(raw=activations)
+        return Action(raw=activations)
+
+
+class ContinuousPolicy(nn.Module):
+
+    """ Converts a policy to a Continuous one. """
+
+    def __init__(self, policy):
+        super(ContinuousPolicy, self).__init__()
+        self.policy = policy
+
+    def forward(self, x):
+        action = self.policy(x)
+        action.value = action.raw.data.numpy()
+        action.sampled = action.raw
+        action.log_sampled = action.sampled.log()
         return action
-
-class StochasticPolicy(nn.Module):
-
-    """ Adds a exploration to a continuous policy. """
-
-    pass
 
 
 class DiscretePolicy(nn.Module):
 
     """ Converts a policy with continuous outputs to a discrete one. """
 
-    def __init__(self, model):
+    def __init__(self, policy):
         super(DiscretePolicy, self).__init__()
-        self.model = model
+        self.policy = policy
 
     def forward(self, x):
-        action = self.model(x)
-        action.value = F.softmax(action.raw).multinomial().data
-        action.log_raw = F.log_softmax(action.raw)
+        action = self.policy(x)
+        pre_sample = F.softmax(action.raw)
+        action.value = pre_sample.multinomial().data[0, 0]
+        action.sampled = pre_sample[:, action.value]
+        action.log_sampled = F.log_softmax(action.raw)[:, action.value]
         return action
 
 
+class DiagonalGaussianPolicy(nn.Module):
+
+    """ Similar to the ones in Schulman. """
+
+    pass

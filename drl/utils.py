@@ -17,7 +17,7 @@ from gym.spaces import Discrete
 
 from .algos import Reinforce, Random
 from .models import FC2
-from .policies import DiscretePolicy, Policy
+from .policies import ContinuousPolicy, DiscretePolicy, Policy
 from .env_converter import EnvWrapper, StateNormalizer,  numel
 
 
@@ -121,6 +121,8 @@ def get_setup(seed_offset=0):
     policy = Policy(model)
     if is_discrete(env):
         policy = DiscretePolicy(policy)
+    else:
+        policy = ContinuousPolicy(policy)
     policy.train()
     agent = get_algo(args.algo)(policy=policy, gamma=args.gamma,
                                 critic=critic,

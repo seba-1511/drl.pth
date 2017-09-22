@@ -44,11 +44,11 @@ class Reinforce(BaseAgent):
     def act(self, state):
         state = self._variable(state)
         action = self.policy(state)
-        return action.value[0, 0], action
+        return action.value, action
 
     def learn(self, state, action, reward, next_state, done, info=None):
         self.rewards[-1].append(reward)
-        self.actions[-1].append(info.log_raw[0, action])
+        self.actions[-1].append(info.log_sampled)
         self.critics[-1].append(self.critic(self._variable(state)))
         self.steps += 1
 
@@ -62,7 +62,7 @@ class Reinforce(BaseAgent):
         TODO:
             * Batch inputs
             * entropy
-            * Continuous on InvertedPendulum
+            * Continuous on InvertedPendulum and Ant-v1
             * lstm
         """
         for actions_ep, rewards_ep, critics_ep in zip(self.actions, self.rewards, self.critics):
