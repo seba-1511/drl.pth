@@ -39,12 +39,15 @@ class Reinforce(BaseAgent):
         return self.policy.parameters()
 
     def _variable(self, state):
-        return V(th.from_numpy(state).float().unsqueeze(0))
+        state = th.from_numpy(state).float()
+        if len(state.size()) < 2:
+            state = state.unsqueeze(0)
+        return V(state)
 
     def act(self, state):
         state = self._variable(state)
         action = self.policy(state)
-        return action.value, action
+        return action.value[0], action
 
     def learn(self, state, action, reward, next_state, done, info=None):
         self.rewards[-1].append(reward)
@@ -60,7 +63,6 @@ class Reinforce(BaseAgent):
     def get_update(self):
         """
         TODO:
-            * Batch inputs
             * entropy
             * lstm
         """

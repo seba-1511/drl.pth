@@ -44,7 +44,7 @@ class ContinuousPolicy(nn.Module):
 
     def forward(self, x):
         action = self.policy(x)
-        action.value = action.raw.data.numpy()
+        action.value = action.raw.data.tolist()
         action.sampled = action.raw
         action.log_sampled = action.sampled.log()
         return action
@@ -61,9 +61,9 @@ class DiscretePolicy(nn.Module):
     def forward(self, x):
         action = self.policy(x)
         pre_sample = F.softmax(action.raw)
-        action.value = pre_sample.multinomial().data[0, 0]
-        action.sampled = pre_sample[:, action.value]
-        action.log_sampled = F.log_softmax(action.raw)[:, action.value]
+        action.value = pre_sample.multinomial().data[:, 0].tolist()
+        action.sampled = pre_sample[:, action.value].mean(0)
+        action.log_sampled = F.log_softmax(action.raw)[:, action.value].mean(0)
         return action
 
 
