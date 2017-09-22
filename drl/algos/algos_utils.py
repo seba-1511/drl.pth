@@ -17,7 +17,7 @@ LOG2PI = log(2.0 * PI)
 def discount(rewards, gamma):
     R = 0.0
     discounted = []
-    for r in reversed(rewards):
+    for r in rewards[::-1]:
         R = r + gamma * R
         discounted.insert(0, R)
     return th.Tensor(discounted)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
 
-import gym; gym.make('PongDeterministic-v4') # Somehow, required to init an env before import torch.
+import gym; #gym.make('PongDeterministic-v4') # Somehow, required to init an env before import torch.
 import torch as th
 
 # from seb.plot import Plot

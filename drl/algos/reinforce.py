@@ -2,78 +2,84 @@
 
 import torch as th
 import torch.nn.functional as F
+from torch import Tensor as T
 from torch.autograd import Variable as V
 from torch.autograd import backward
 from math import pi, exp
 
 from .base import BaseAgent
-from .algos_utils import discount, normalize
+from .algos_utils import discount, normalize, EPSILON
+
+from ..models import ConstantCritic
 
 
 class Reinforce(BaseAgent):
 
-    def __init__(self, policy=None, critic=None, gamma=0.99, update_frequency=1000, entropy_weight=0.0001):
+    def __init__(self, policy=None, critic=None, gamma=0.99, update_frequency=1000, entropy_weight=0.0001, critic_weight=0.5,
+                 grad_clip=50.0):
         self.policy = policy
         self.gamma = gamma
         if critic is None:
             critic = ConstantCritic(0)
         self.critic = critic
         self.entropy_weight = entropy_weight
+        self.critic_weight = critic_weight
         self.update_frequency = update_frequency
+        self.grad_clip = grad_clip
         self._reset()
-        self.update_ready = False
-        self.log2pie = th.log(th.Tensor([2.0 * pi * exp(1.0)]))
 
     def _reset(self):
         self.steps = 0
         self.rewards = [[], ]
         self.entropies = [[], ]
         self.actions = [[], ]
+        self.critics = [[], ]
 
     def parameters(self):
         return self.policy.parameters()
 
+    def _variable(self, state):
+        return V(th.from_numpy(state).float().unsqueeze(0))
+
     def act(self, state):
-        state = V(th.from_numpy(state).float().unsqueeze(0))
+        state = self._variable(state)
         action = self.policy(state)
         return action.value[0, 0], action
 
     def learn(self, state, action, reward, next_state, done, info=None):
         self.rewards[-1].append(reward)
-        self.actions[-1].append(F.log_softmax(info.raw)[0, action])
+        self.actions[-1].append(info.log_raw[0, action])
+        self.critics[-1].append(self.critic(self._variable(state)))
         self.steps += 1
 
     def new_episode(self, terminated=False):
         self.rewards.append([])
         self.actions.append([])
-#        self.policy.reset()
+        self.critics.append([])
 
     def get_update(self):
-        R = 0
-        rewards = []
-        rewards = []
-        for r in self.rewards[0][::-1]:
-            R = r + self.gamma * R
-            rewards.insert(0, R)
-        rewards = th.Tensor(rewards)
-        rewards = (rewards - rewards.mean()) / (rewards.std() + 1e-6)
-        loss = 0.0
-        for action, r in zip(self.actions[0], rewards):
-            loss = loss - action * r
-        backward(loss, [None for _ in self.actions])
+        """
+        TODO:
+            * Batch inputs
+            * entropy
+            * Continuous on InvertedPendulum
+            * lstm
+        """
+        for actions_ep, rewards_ep, critics_ep in zip(self.actions, self.rewards, self.critics):
+            if len(actions_ep) > 0:
+                rewards = discount(rewards_ep, self.gamma)
+                rewards = normalize(rewards)
+                policy_loss = 0.0
+                critic_loss = 0.0
+                for action, r, critic in zip(actions_ep, rewards, critics_ep):
+                    advantage = V(T([r])) - critic
+                    policy_loss = policy_loss - action.sum() * advantage.data[0, 0]
+                    critic_loss = critic_loss + advantage.pow(2)
+                loss = policy_loss + self.critic_weight * critic_loss
+                loss.backward()
+                th.nn.utils.clip_grad_norm(self.parameters(), self.grad_clip)
         self._reset()
         return [p.grad.clone() for p in self.parameters()]
-        # loss = 0.0
-        # for actions, rewards in zip(self.actions, self.rewards):
-        #     if len(actions) > 0:
-        #         rewards = normalize(discount(rewards, self.gamma))
-        #         entropy_loss = -(self.entropy_weight * sum(entropies)).sum()
-        #         for action, reward in zip(actions, rewards):
-        #             action.reinforce(reward)
-        #         loss = [entropy_loss, ] + actions
-        #         backward(loss, [th.ones(1)] + [None for _ in actions])
-        # self._reset()
-        # return [p.grad.clone() for p in self.parameters()]
 
     def updatable(self):
         if self.update_frequency > 0:

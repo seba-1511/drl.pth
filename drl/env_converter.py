@@ -39,10 +39,11 @@ def softmax(x):
     return act / act.sum()
 
 
-class EnvConverter(object):
+class EnvWrapper(object):
 
     """
-    Common methods for the EnvConverter sub-classes.
+    Wrapper around Gym environments that provides useful additional
+    information.
     """
 
     def __init__(self, env):
@@ -61,8 +62,8 @@ class EnvConverter(object):
             self.is_discrete = False
             self.action_size = numel(env.action_space.sample())
 
-
-        self.actions = []
+    def step(self, action):
+        return self.env.step(action)
 
     def __getattr__(self, name):
         if name == 'step':
@@ -72,6 +73,17 @@ class EnvConverter(object):
                 return self.env.__getattribute__(name)
             except:
                 return self.env.__getattr__(name)
+
+
+
+class EnvConverter(EnvWrapper):
+
+    """
+    Common methods for the EnvConverter sub-classes.
+    """
+
+    def __init__(self, env):
+        super(EnvConverter, self).__init__(env)
 
     def step(self, action):
         if self.is_discrete:

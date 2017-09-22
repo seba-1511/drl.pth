@@ -17,8 +17,8 @@ from gym.spaces import Discrete
 
 from .algos import Reinforce, Random
 from .models import FC2
-from .policies import StochasticPolicy, DropoutPolicy, DiscretePolicy, Policy
-from .env_converter import StateNormalizer,  numel
+from .policies import DiscretePolicy, Policy
+from .env_converter import EnvWrapper, StateNormalizer,  numel
 
 
 def parse_args():
@@ -108,20 +108,17 @@ def get_setup(seed_offset=0):
     args = parse_args()
     args.seed += seed_offset
     env = gym.make(args.env)
+    env = EnvWrapper(env)
 #    env = StateNormalizer(env)
     env.seed(args.seed)
     np.random.seed(args.seed)
     th.manual_seed(args.seed)
-    model, critic = get_model(args.model)(numel(env.observation_space.shape),
+    model, critic = get_model(args.model)(env.state_size,
                                           # env.action_size, layer_sizes=(8, 8),
                                           #env.action_size, layer_sizes=(64, 64),
-                                          env.action_space.n, layer_sizes=(128, 128),
+                                          env.action_size, layer_sizes=(128, 128),
                                           dropout=args.dropout)
     policy = Policy(model)
-    #if args.dropout > 0.0:
-    #    policy = DropoutPolicy(policy)
-    #else:
-    #    policy = StochasticPolicy(policy)
     if is_discrete(env):
         policy = DiscretePolicy(policy)
     policy.train()
