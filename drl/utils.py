@@ -124,7 +124,6 @@ def get_setup(seed_offset=0):
     else:
         policy = ContinuousPolicy(policy, action_size=env.action_size)
     policy.train()
-#    critic = None
     agent = get_algo(args.algo)(policy=policy, gamma=args.gamma,
                                 critic=critic,
                                 update_frequency=args.update_frequency)
