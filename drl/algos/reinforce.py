@@ -2,10 +2,13 @@
 
 import torch as th
 import torch.nn.functional as F
+
+
 from torch import Tensor as T
 from torch.autograd import Variable as V
 from torch.autograd import backward
 from math import pi, exp
+from itertools import chain
 
 from .base import BaseAgent
 from .algos_utils import discount, normalize, EPSILON
@@ -15,7 +18,7 @@ from ..models import ConstantCritic
 
 class Reinforce(BaseAgent):
 
-    def __init__(self, policy=None, critic=None, gamma=0.99, update_frequency=1000, entropy_weight=0.0001, critic_weight=0.5,
+    def __init__(self, policy=None, critic=None, gamma=0.99, update_frequency=1000, entropy_weight=0.01, critic_weight=0.5,
                  grad_clip=50.0):
         self.policy = policy
         self.gamma = gamma
@@ -36,7 +39,9 @@ class Reinforce(BaseAgent):
         self.critics = [[], ]
 
     def parameters(self):
-        return self.policy.parameters()
+        parameters = chain(self.policy.parameters(),
+                           self.critic.parameters())
+        return parameters
 
     def _variable(self, state):
         state = th.from_numpy(state).float()
@@ -51,32 +56,36 @@ class Reinforce(BaseAgent):
 
     def learn(self, state, action, reward, next_state, done, info=None):
         self.rewards[-1].append(reward)
-        self.actions[-1].append(info.log_sampled)
+        self.actions[-1].append(info.log_prob)
         self.critics[-1].append(self.critic(self._variable(state)))
+        self.entropies[-1].append(info.entropy)
         self.steps += 1
 
     def new_episode(self, terminated=False):
         self.rewards.append([])
         self.actions.append([])
         self.critics.append([])
+        self.entropies.append([])
 
     def get_update(self):
         """
         TODO:
-            * entropy
             * lstm
         """
-        for actions_ep, rewards_ep, critics_ep in zip(self.actions, self.rewards, self.critics):
+        for actions_ep, rewards_ep, critics_ep, entropy_ep in zip(self.actions, self.rewards, self.critics, self.entropies):
             if len(actions_ep) > 0:
                 rewards = discount(rewards_ep, self.gamma)
                 rewards = normalize(rewards)
                 policy_loss = 0.0
                 critic_loss = 0.0
+                entropy_loss = th.cat(entropy_ep).mean()
                 for action, r, critic in zip(actions_ep, rewards, critics_ep):
                     advantage = V(T([r])) - critic
-                    policy_loss = policy_loss - action.sum() * advantage.data[0, 0]
+                    policy_loss = policy_loss + action.sum() * advantage.data[0, 0]
                     critic_loss = critic_loss + advantage.pow(2)
-                loss = policy_loss + self.critic_weight * critic_loss
+                critic_loss = self.critic_weight * critic_loss
+                entropy_loss = self.entropy_weight * entropy_loss
+                loss = - policy_loss + critic_loss - entropy_loss
                 loss.backward()
                 th.nn.utils.clip_grad_norm(self.parameters(), self.grad_clip)
         self._reset()

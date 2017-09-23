@@ -51,12 +51,29 @@ class Critic(nn.Module):
 
 
 class ConstantCritic(nn.Module):
+
     def __init__(self, value=0.0):
         super(ConstantCritic, self).__init__()
         self.value = V(th.zeros(1, 1) + value) 
 
     def forward(self, x):
         return self.value
+
+
+class LSTMFeatures(nn.Module):
+
+    def __init__(self, state_size, layer_sizes=[128, 128], dropout=0.0):
+        super(LSTMFeatures, self).__init__()
+        if dropout != 0.0:
+            raise Exception('Dropout not supported yet.')
+        self.affine1 = nn.Linear(state_size, layer_sizes[0])
+
+    def forward(self, x):
+        x = F.relu(self.affine1(x))
+        return x
+        action_scores = self.action_head(x)
+        state_values = self.value_head(x)
+        return F.softmax(action_scores), state_values
 
 
 def FC2(state_size, action_size, layer_sizes=[128, 128], dropout=0.0):

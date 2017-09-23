@@ -4,157 +4,114 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
-A3C	drl/algos/a3c.py	/^class A3C(ActorCriticReinforce):$/;"	c
 ALGO	Makefile	/^ALGO=ppo$/;"	m
-ActorCriticReinforce	drl/algos/reinforce_with_critic.py	/^class ActorCriticReinforce(Reinforce):$/;"	c
-Atari	drl/models.py	/^class Atari(BasePolicyModel):$/;"	c
+ALGO	Makefile	/^ALGO=reinforce$/;"	m
+Action	drl/policies.py	/^class Action(object):$/;"	c
+Actor	drl/models.py	/^class Actor(nn.Module):$/;"	c
 BaseAgent	drl/algos/base.py	/^class BaseAgent(object):$/;"	c
-BasePolicyModel	drl/models.py	/^class BasePolicyModel(nn.Module):$/;"	c
+ConstantCritic	drl/models.py	/^class ConstantCritic(nn.Module):$/;"	c
+ContinuousPolicy	drl/policies.py	/^class ContinuousPolicy(DiagonalGaussianPolicy):$/;"	c
+Critic	drl/models.py	/^class Critic(nn.Module):$/;"	c
 DROPOUT	Makefile	/^DROPOUT=0.0$/;"	m
-DropoutPolicy	drl/policies.py	/^class DropoutPolicy(nn.Module):$/;"	c
+DiagonalGaussianPolicy	drl/policies.py	/^class DiagonalGaussianPolicy(nn.Module):$/;"	c
+DiscretePolicy	drl/policies.py	/^class DiscretePolicy(nn.Module):$/;"	c
 ENV	Makefile	/^ENV=CartPole-v0$/;"	m
+ENV	Makefile	/^ENV=InvertedPendulum-v1$/;"	m
 EPSILON	drl/algos/algos_utils.py	/^EPSILON = 1e-6$/;"	v
 EPSILON	drl/env_converter.py	/^EPSILON = 1e-6$/;"	v
-EnvConverter	drl/env_converter.py	/^class EnvConverter(object):$/;"	c
-FC	drl/models.py	/^class FC(BasePolicyModel):$/;"	c
+EnvConverter	drl/env_converter.py	/^class EnvConverter(EnvWrapper):$/;"	c
+EnvWrapper	drl/env_converter.py	/^class EnvWrapper(object):$/;"	c
+FC2	drl/models.py	/^def FC2(state_size, action_size, layer_sizes=[128, 128], dropout=0.0):$/;"	f
+Features	drl/models.py	/^class Features(nn.Module):$/;"	c
 HUGE_VALUE	drl/env_converter.py	/^HUGE_VALUE = 1e7$/;"	v
 LOG2PI	drl/algos/algos_utils.py	/^LOG2PI = log(2.0 * PI)$/;"	v
-LR	Makefile	/^LR=0.0005$/;"	m
-LSTM	drl/models.py	/^class LSTM(BasePolicyModel):$/;"	c
-LinearVF	drl/algos/algos_utils.py	/^class LinearVF(object):$/;"	c
-MultiActionEnvConverter	drl/env_converter.py	/^class MultiActionEnvConverter(EnvConverter):$/;"	c
+LR	Makefile	/^LR=0.000051$/;"	m
+LR	Makefile	/^LR=0.01$/;"	m
+LSTMFeatures	drl/models.py	/^class LSTMFeatures(nn.Module):$/;"	c
+MODEL	Makefile	/^MODEL=fc$/;"	m
 NUM_WORKERS	Makefile	/^NUM_WORKERS=8$/;"	m
 N_STEPS	Makefile	/^N_STEPS=100000000$/;"	m
-OPT	Makefile	/^OPT=SGD$/;"	m
+OPT	Makefile	/^OPT=Adam$/;"	m
 PI	drl/algos/algos_utils.py	/^PI = 3.141592654$/;"	v
-POLICY	Makefile	/^POLICY=fc$/;"	m
-PPO	drl/algos/ppo.py	/^class PPO(ActorCriticReinforce):$/;"	c
+Policy	drl/policies.py	/^class Policy(nn.Module):$/;"	c
 Random	drl/algos/random.py	/^class Random(BaseAgent):$/;"	c
 Reinforce	drl/algos/reinforce.py	/^class Reinforce(BaseAgent):$/;"	c
-SingleActionEnvConverter	drl/env_converter.py	/^class SingleActionEnvConverter(EnvConverter):$/;"	c
-SoftmaxEnvConverter	drl/env_converter.py	/^class SoftmaxEnvConverter(EnvConverter):$/;"	c
 StateNormalizer	drl/env_converter.py	/^class StateNormalizer(EnvConverter):$/;"	c
-StochasticPolicy	drl/policies.py	/^class StochasticPolicy(nn.Module):$/;"	c
 TEST_N_STEPS	Makefile	/^TEST_N_STEPS=100$/;"	m
-TRPO	drl/algos/trpo.py	/^class TRPO(BaseAgent):$/;"	c
 VERSION	setup.py	/^VERSION = '0.0.1'$/;"	v
-__call__	drl/algos/algos_utils.py	/^    def __call__(self, x):$/;"	m	class:LinearVF	file:
-__getattr__	drl/env_converter.py	/^    def __getattr__(self, name):$/;"	m	class:EnvConverter	file:
-__init__	drl/algos/a3c.py	/^    def __init__(self, policy=None, critic=None, gamma=0.99, update_frequency=1000, entropy_weight=0.0001, critic_weight=0.5, grad_norm=40.0, tau=1.0):$/;"	m	class:A3C
-__init__	drl/algos/algos_utils.py	/^    def __init__(self, num_in, num_out):$/;"	m	class:LinearVF
-__init__	drl/algos/ppo.py	/^    def __init__(self, policy=None, critic=None, num_epochs=10, loss_clip=0.2,$/;"	m	class:PPO
+__getattr__	drl/env_converter.py	/^    def __getattr__(self, name):$/;"	m	class:EnvWrapper	file:
 __init__	drl/algos/random.py	/^    def __init__(self, policy, *args, **kwargs):$/;"	m	class:Random
-__init__	drl/algos/reinforce.py	/^    def __init__(self, policy=None, baseline=0.5, gamma=0.99, update_frequency=1000, entropy_weight=0.0001):$/;"	m	class:Reinforce
-__init__	drl/algos/reinforce_with_critic.py	/^    def __init__(self, policy=None, critic=None, gamma=0.99, update_frequency=1000, entropy_weight=0.0001, critic_weight=0.5):$/;"	m	class:ActorCriticReinforce
-__init__	drl/algos/trpo.py	/^    def __init__($/;"	m	class:TRPO
+__init__	drl/algos/reinforce.py	/^    def __init__(self, policy=None, critic=None, gamma=0.99, update_frequency=1000, entropy_weight=0.01, critic_weight=0.5,$/;"	m	class:Reinforce
 __init__	drl/env_converter.py	/^    def __init__(self, env):$/;"	m	class:EnvConverter
-__init__	drl/env_converter.py	/^    def __init__(self, env):$/;"	m	class:SingleActionEnvConverter
+__init__	drl/env_converter.py	/^    def __init__(self, env):$/;"	m	class:EnvWrapper
 __init__	drl/env_converter.py	/^    def __init__(self, env, memory_size=100, per_dimension=False):$/;"	m	class:StateNormalizer
-__init__	drl/models.py	/^    def __init__(self):$/;"	m	class:BasePolicyModel
-__init__	drl/models.py	/^    def __init__(self, num_in, num_out, layer_sizes=(16, 16), activation=None, dropout=0.0):$/;"	m	class:Atari
-__init__	drl/models.py	/^    def __init__(self, num_in, num_out, layer_sizes=(16, 16), activation=None, dropout=0.0):$/;"	m	class:FC
-__init__	drl/models.py	/^    def __init__(self, num_in, num_out, layer_sizes=(16, 16), dropout=0.0):$/;"	m	class:LSTM
-__init__	drl/policies.py	/^    def __init__(self, model):$/;"	m	class:StochasticPolicy
-__init__	drl/policies.py	/^    def __init__(self, model, num_samples=10):$/;"	m	class:DropoutPolicy
+__init__	drl/models.py	/^    def __init__(self, feature_extractor, state_size):$/;"	m	class:Critic
+__init__	drl/models.py	/^    def __init__(self, feature_extractor=None, action_size=None, features_size=None):$/;"	m	class:Actor
+__init__	drl/models.py	/^    def __init__(self, state_size, layer_sizes=[128, 128], dropout=0.0):$/;"	m	class:Features
+__init__	drl/models.py	/^    def __init__(self, state_size, layer_sizes=[128, 128], dropout=0.0):$/;"	m	class:LSTMFeatures
+__init__	drl/models.py	/^    def __init__(self, value=0.0):$/;"	m	class:ConstantCritic
+__init__	drl/policies.py	/^    def __init__(self, **kwargs):$/;"	m	class:Action
+__init__	drl/policies.py	/^    def __init__(self, model):$/;"	m	class:Policy
+__init__	drl/policies.py	/^    def __init__(self, policy):$/;"	m	class:DiscretePolicy
+__init__	drl/policies.py	/^    def __init__(self, policy, action_size, init_value=-3.0):$/;"	m	class:DiagonalGaussianPolicy
 _clip	drl/env_converter.py	/^    def _clip(self, action):$/;"	m	class:EnvConverter
 _convert	drl/env_converter.py	/^    def _convert(self, action):$/;"	m	class:EnvConverter
-_convert	drl/env_converter.py	/^    def _convert(self, action):$/;"	m	class:MultiActionEnvConverter
-_convert	drl/env_converter.py	/^    def _convert(self, action):$/;"	m	class:SingleActionEnvConverter
-_convert	drl/env_converter.py	/^    def _convert(self, action):$/;"	m	class:SoftmaxEnvConverter
-_get_grad	drl/algos/trpo.py	/^    def _get_grad(self, value):$/;"	m	class:TRPO
-_grads_gvp	drl/algos/trpo.py	/^    def _grads_gvp(self, tangents, actions, states, means, logstds):$/;"	m	class:TRPO
-_prepare_for_update	drl/algos/ppo.py	/^    def _prepare_for_update(self):$/;"	m	class:PPO
-_reset	drl/algos/ppo.py	/^    def _reset(self):$/;"	m	class:PPO
+_normal	drl/policies.py	/^    def _normal(self, x, mean, logstd):$/;"	m	class:DiagonalGaussianPolicy
 _reset	drl/algos/reinforce.py	/^    def _reset(self):$/;"	m	class:Reinforce
-_reset	drl/algos/reinforce_with_critic.py	/^    def _reset(self):$/;"	m	class:ActorCriticReinforce
-_reset	drl/algos/trpo.py	/^    def _reset(self):$/;"	m	class:TRPO
-_surrogate	drl/algos/trpo.py	/^    def _surrogate(self, actions, states, means, logstds, advantages):$/;"	m	class:TRPO
-_track_params	drl/models.py	/^    def _track_params(self, layers):$/;"	m	class:BasePolicyModel
+_variable	drl/algos/reinforce.py	/^    def _variable(self, state):$/;"	m	class:Reinforce
 act	drl/algos/base.py	/^    def act(self, state):$/;"	m	class:BaseAgent
-act	drl/algos/ppo.py	/^    def act(self, state):$/;"	m	class:PPO
 act	drl/algos/random.py	/^    def act(self, state):$/;"	m	class:Random
 act	drl/algos/reinforce.py	/^    def act(self, state):$/;"	m	class:Reinforce
-act	drl/algos/reinforce_with_critic.py	/^    def act(self, state):$/;"	m	class:ActorCriticReinforce
-act	drl/algos/trpo.py	/^    def act(self, state):$/;"	m	class:TRPO
 async_train	async_bench.py	/^def async_train(agent, opt, rank):$/;"	f
 author	setup.py	/^        author='Seb Arnold',$/;"	v
 author_email	setup.py	/^        author_email='smr.arnold@gmail.com',$/;"	v
 classifiers	setup.py	/^        classifiers=[],$/;"	v
 clip	drl/env_converter.py	/^def clip(val, minval, maxval):$/;"	f
-conjgrad	drl/algos/trpo.py	/^        def conjgrad(fvp, grads, cg_iters=10, residual_tol=1e-10):$/;"	f	function:TRPO.get_update
 description	setup.py	/^        description='Distributed reinforcement learning algorithms implemented in Pytorch.',$/;"	v
 discount	drl/algos/algos_utils.py	/^def discount(rewards, gamma):$/;"	f
 done	drl/algos/base.py	/^    def done(self):$/;"	m	class:BaseAgent
 dot_not_flat	drl/algos/algos_utils.py	/^def dot_not_flat(A, B):$/;"	f
 download_url	setup.py	/^        download_url='https:\/\/github.com\/seba-1511\/drl\/archive\/0.1.3.zip',$/;"	v
-extract_features	drl/algos/algos_utils.py	/^    def extract_features(self, x, d=False):$/;"	m	class:LinearVF
-fisher_vec_prod	drl/algos/trpo.py	/^        def fisher_vec_prod(vectors):$/;"	f	function:TRPO.get_update
-forgetful_forward	drl/models.py	/^    def forgetful_forward(self, x):$/;"	m	class:Atari
-forgetful_forward	drl/models.py	/^    def forgetful_forward(self, x):$/;"	m	class:BasePolicyModel
-forgetful_forward	drl/models.py	/^    def forgetful_forward(self, x):$/;"	m	class:FC
-forgetful_forward	drl/models.py	/^    def forgetful_forward(self, x):$/;"	m	class:LSTM
-forward	drl/models.py	/^    def forward(self, x):$/;"	m	class:Atari
-forward	drl/models.py	/^    def forward(self, x):$/;"	m	class:BasePolicyModel
-forward	drl/models.py	/^    def forward(self, x):$/;"	m	class:FC
-forward	drl/models.py	/^    def forward(self, x):$/;"	m	class:LSTM
-forward	drl/policies.py	/^    def forward(self, x):$/;"	m	class:DropoutPolicy
-forward	drl/policies.py	/^    def forward(self, x):$/;"	m	class:StochasticPolicy
+forward	drl/models.py	/^    def forward(self, x):$/;"	m	class:Actor
+forward	drl/models.py	/^    def forward(self, x):$/;"	m	class:ConstantCritic
+forward	drl/models.py	/^    def forward(self, x):$/;"	m	class:Critic
+forward	drl/models.py	/^    def forward(self, x):$/;"	m	class:Features
+forward	drl/models.py	/^    def forward(self, x):$/;"	m	class:LSTMFeatures
+forward	drl/policies.py	/^    def forward(self, x):$/;"	m	class:DiagonalGaussianPolicy
+forward	drl/policies.py	/^    def forward(self, x):$/;"	m	class:DiscretePolicy
+forward	drl/policies.py	/^    def forward(self, x):$/;"	m	class:Policy
 gauss_log_prob	drl/algos/algos_utils.py	/^def gauss_log_prob(means, logstds, x):$/;"	f
 generalized_advantage_estimations	drl/algos/algos_utils.py	/^def generalized_advantage_estimations(rewards, critics, gamma, tau):$/;"	f
 get_algo	drl/utils.py	/^def get_algo(name):$/;"	f
+get_model	drl/utils.py	/^def get_model(name):$/;"	f
 get_opt	drl/utils.py	/^def get_opt(name):$/;"	f
-get_policy	drl/utils.py	/^def get_policy(name):$/;"	f
 get_setup	drl/utils.py	/^def get_setup(seed_offset=0):$/;"	f
-get_state	drl/models.py	/^    def get_state(self):$/;"	m	class:Atari
-get_state	drl/models.py	/^    def get_state(self):$/;"	m	class:BasePolicyModel
-get_state	drl/models.py	/^    def get_state(self):$/;"	m	class:LSTM
-get_update	drl/algos/a3c.py	/^    def get_update(self):$/;"	m	class:A3C
 get_update	drl/algos/base.py	/^    def get_update(self):$/;"	m	class:BaseAgent
-get_update	drl/algos/ppo.py	/^    def get_update(self):$/;"	m	class:PPO
 get_update	drl/algos/reinforce.py	/^    def get_update(self):$/;"	m	class:Reinforce
-get_update	drl/algos/reinforce_with_critic.py	/^    def get_update(self):$/;"	m	class:ActorCriticReinforce
-get_update	drl/algos/trpo.py	/^    def get_update(self):$/;"	m	class:TRPO
 init_processes	sync_bench.py	/^def init_processes(rank, size, fn, backend='tcp'):$/;"	f
-learn	drl/algos/algos_utils.py	/^    def learn(self, states, rewards):$/;"	m	class:LinearVF
+is_discrete	drl/utils.py	/^def is_discrete(env):$/;"	f
 learn	drl/algos/base.py	/^    def learn(self, state=None, action=None, reward=None, next_state=None, done=None, info=None):$/;"	m	class:BaseAgent
-learn	drl/algos/ppo.py	/^    def learn(self, state, action, reward, next_state, done, info=None):$/;"	m	class:PPO
 learn	drl/algos/reinforce.py	/^    def learn(self, state, action, reward, next_state, done, info=None):$/;"	m	class:Reinforce
-learn	drl/algos/reinforce_with_critic.py	/^    def learn(self, state, action, reward, next_state, done, info=None):$/;"	m	class:ActorCriticReinforce
-learn	drl/algos/trpo.py	/^    def learn(self, state, action, reward, next_state, done, info=None):$/;"	m	class:TRPO
 license	setup.py	/^        license='License :: OSI Approved :: Apache Software License',$/;"	v
 logp	drl/algos/algos_utils.py	/^def logp(x, mean, std):$/;"	f
 name	setup.py	/^        name='drl',$/;"	v
-new_episode	drl/algos/a3c.py	/^    def new_episode(self, terminated=False):$/;"	m	class:A3C
 new_episode	drl/algos/base.py	/^    def new_episode(self, terminated=False):$/;"	m	class:BaseAgent
-new_episode	drl/algos/ppo.py	/^    def new_episode(self, terminated=False):$/;"	m	class:PPO
 new_episode	drl/algos/reinforce.py	/^    def new_episode(self, terminated=False):$/;"	m	class:Reinforce
-new_episode	drl/algos/reinforce_with_critic.py	/^    def new_episode(self, terminated=False):$/;"	m	class:ActorCriticReinforce
-new_episode	drl/algos/trpo.py	/^    def new_episode(self, terminated=False):$/;"	m	class:TRPO
 normalize	drl/algos/algos_utils.py	/^def normalize(tensor):$/;"	f
 normalize	drl/env_converter.py	/^    def normalize(self, new_state):$/;"	m	class:StateNormalizer
-normalized_columns_initializer	drl/models.py	/^def normalized_columns_initializer(weights, std=1.0):$/;"	f
 numel	drl/env_converter.py	/^def numel(x):$/;"	f
 packages	setup.py	/^        packages=['drl'],$/;"	v
 parameters	drl/algos/base.py	/^    def parameters(self):$/;"	m	class:BaseAgent
 parameters	drl/algos/reinforce.py	/^    def parameters(self):$/;"	m	class:Reinforce
-parameters	drl/algos/reinforce_with_critic.py	/^    def parameters(self):$/;"	m	class:ActorCriticReinforce
-parameters	drl/algos/trpo.py	/^    def parameters(self):$/;"	m	class:TRPO
 parse_args	drl/utils.py	/^def parse_args():$/;"	f
 print_stats	benchmark.py	/^def print_stats(name, rewards, n_iters, timing, steps):$/;"	f
 reset	drl/env_converter.py	/^    def reset(self):$/;"	m	class:StateNormalizer
-reset	drl/policies.py	/^    def reset(self):$/;"	m	class:DropoutPolicy
-reset	drl/policies.py	/^    def reset(self):$/;"	m	class:StochasticPolicy
-reset_state	drl/models.py	/^    def reset_state(self):$/;"	m	class:Atari
-reset_state	drl/models.py	/^    def reset_state(self):$/;"	m	class:BasePolicyModel
-reset_state	drl/models.py	/^    def reset_state(self):$/;"	m	class:LSTM
 run	sync_bench.py	/^def run(rank, size):$/;"	f
 scripts	setup.py	/^        scripts=[]$/;"	v
 set_gradients	drl/algos/base.py	/^    def set_gradients(self, gradients):$/;"	m	class:BaseAgent
-set_state	drl/models.py	/^    def set_state(self, state):$/;"	m	class:Atari
-set_state	drl/models.py	/^    def set_state(self, state):$/;"	m	class:BasePolicyModel
-set_state	drl/models.py	/^    def set_state(self, state):$/;"	m	class:LSTM
 softmax	drl/env_converter.py	/^def softmax(x):$/;"	f
 step	drl/env_converter.py	/^    def step(self, action):$/;"	m	class:EnvConverter
+step	drl/env_converter.py	/^    def step(self, action):$/;"	m	class:EnvWrapper
 step	drl/env_converter.py	/^    def step(self, action):$/;"	m	class:StateNormalizer
 sync	sync_bench.py	/^def sync(tensors):$/;"	f
 sync_update	sync_bench.py	/^def sync_update(args, env, agent, opt):$/;"	f
@@ -162,10 +119,7 @@ test	benchmark.py	/^def test(args, env, agent):$/;"	f
 train	benchmark.py	/^def train(args, env, agent, opt, update, verbose=True):$/;"	f
 train_update	benchmark.py	/^def train_update(args, env, agent, opt):$/;"	f
 updatable	drl/algos/base.py	/^    def updatable(self):$/;"	m	class:BaseAgent
-updatable	drl/algos/ppo.py	/^    def updatable(self):$/;"	m	class:PPO
 updatable	drl/algos/reinforce.py	/^    def updatable(self):$/;"	m	class:Reinforce
-updatable	drl/algos/trpo.py	/^    def updatable(self):$/;"	m	class:TRPO
 update	drl/algos/base.py	/^    def update(self, update):$/;"	m	class:BaseAgent
 url	setup.py	/^        url='https:\/\/github.com\/seba-1511\/drl.pth',$/;"	v
 version	setup.py	/^        version=VERSION,$/;"	v
-weights_init	drl/models.py	/^def weights_init(m):$/;"	f

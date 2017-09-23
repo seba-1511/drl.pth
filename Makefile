@@ -4,7 +4,7 @@ ALGO=reinforce
 ENV=CartPole-v0
 LR=0.01
 #ENV=InvertedPendulum-v1
-#LR=0.0001
+#LR=0.000051
 N_STEPS=100000000
 TEST_N_STEPS=100
 OPT=Adam
@@ -21,7 +21,7 @@ async:
 	python async_bench.py --n_proc $(NUM_WORKERS) --algo $(ALGO) --env $(ENV) --n_steps $(N_STEPS) --n_test_iter 100 --opt $(OPT) --lr $(LR)
 
 dev:
-	python benchmark.py --algo $(ALGO) --env $(ENV) --n_steps $(N_STEPS) --model $(MODEL) --dropout $(DROPOUT) --n_test_iter 100 --opt $(OPT) --lr $(LR) --update_frequency 00 --max_path_length 5000 
+	python benchmark.py --algo $(ALGO) --env $(ENV) --n_steps $(N_STEPS) --model $(MODEL) --dropout $(DROPOUT) --n_test_iter 100 --opt $(OPT) --lr $(LR) --update_frequency 00 --max_path_length 5000
 
 test:
 	for algo in reinforce acreinforce a3c; do \
