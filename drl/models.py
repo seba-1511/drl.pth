@@ -10,10 +10,10 @@ from torch.autograd import Variable as V
 from functools import reduce
 
 
-class Features(nn.Module):
+class DiscreteFeatures(nn.Module):
 
     def __init__(self, state_size, layer_sizes=[128, 128], dropout=0.0):
-        super(Features, self).__init__()
+        super(DiscreteFeatures, self).__init__()
         if dropout != 0.0:
             raise Exception('Dropout not supported yet.')
         self.affine1 = nn.Linear(state_size, layer_sizes[0])
@@ -21,21 +21,46 @@ class Features(nn.Module):
     def forward(self, x):
         x = F.relu(self.affine1(x))
         return x
-        action_scores = self.action_head(x)
-        state_values = self.value_head(x)
-        return F.softmax(action_scores), state_values
 
 
-class Actor(nn.Module):
+class DiscreteActor(nn.Module):
 
     def __init__(self, feature_extractor=None, action_size=None, features_size=None):
-        super(Actor, self).__init__()
+        super(DiscreteActor, self).__init__()
         self.feature_extractor = feature_extractor
         self.linear = nn.Linear(features_size, action_size)
 
     def forward(self, x):
         features = self.feature_extractor(x)
         return self.linear(features)
+
+
+class ContinuousFeatures(nn.Module):
+
+    def __init__(self, state_size, layer_sizes=[128, 128], dropout=0.0):
+        super(ContinuousFeatures, self).__init__()
+        if dropout != 0.0:
+            raise Exception('Dropout not supported yet.')
+        self.affine1 = nn.Linear(state_size, layer_sizes[0])
+
+    def forward(self, x):
+        x = F.tanh(self.affine1(x))
+        return x
+
+
+class ContinuousActor(nn.Module):
+
+    def __init__(self, feature_extractor=None, action_size=None, features_size=None):
+        super(ContinuousActor, self).__init__()
+        self.feature_extractor = feature_extractor
+        self.linear = nn.Linear(features_size, action_size, bias=False)
+        self.linear.weight.data *= 0.1
+
+    def forward(self, x):
+        features = self.feature_extractor(x)
+        return self.linear(features)
+
+
 
 
 class Critic(nn.Module):
@@ -66,18 +91,30 @@ class LSTMFeatures(nn.Module):
         super(LSTMFeatures, self).__init__()
         if dropout != 0.0:
             raise Exception('Dropout not supported yet.')
-        self.affine1 = nn.Linear(state_size, layer_sizes[0])
+        self.lstm = nn.LSTMCell(state_size, layer_sizes[0])
 
-    def forward(self, x):
-        x = F.relu(self.affine1(x))
+    def forward(self, x, states):
+        x = F.relu(self.lstm(x, states))
         return x
-        action_scores = self.action_head(x)
-        state_values = self.value_head(x)
-        return F.softmax(action_scores), state_values
 
 
-def FC2(state_size, action_size, layer_sizes=[128, 128], dropout=0.0):
-    features = Features(state_size, layer_sizes, dropout)
+def FC2(state_size, action_size, layer_sizes=[128, 128], dropout=0.0, discrete=True):
+    if discrete:
+        features = DiscreteFeatures(state_size, layer_sizes, dropout)
+        actor = DiscreteActor(feature_extractor=features,
+                      features_size=layer_sizes[-1],
+                      action_size=action_size)
+    else:
+        features = ContinuousFeatures(state_size, layer_sizes, dropout)
+        actor = ContinuousActor(feature_extractor=features,
+                      features_size=layer_sizes[-1],
+                      action_size=action_size)
+    critic = Critic(feature_extractor=features,
+                    state_size=layer_sizes[-1])
+    return (actor, critic)
+
+def LSTM2(state_size, action_size, layer_sizes=[128, 128], dropout=0.0):
+    features = LSTMFeatures(state_size, layer_sizes, dropout)
     actor = Actor(feature_extractor=features,
                   features_size=layer_sizes[-1],
                   action_size=action_size)

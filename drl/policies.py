@@ -33,25 +33,24 @@ class Policy(nn.Module):
     
     """ Transforms a nn.Module into a Policy that returns an Action(). """
 
-    def __init__(self, model):
+    def __init__(self, model, recurrent=False, *args, **kwargs):
         super(Policy, self).__init__()
         self.model = model
+        self.recurrent = recurrent
 
     def forward(self, x):
         activations = self.model(x)
         return Action(raw=activations)
 
-
-class DiscretePolicy(nn.Module):
+class DiscretePolicy(Policy):
 
     """ Converts a policy with continuous outputs to a discrete one. """
 
-    def __init__(self, policy):
-        super(DiscretePolicy, self).__init__()
-        self.policy = policy
+    def __init__(self, *args, **kwargs):
+        super(DiscretePolicy, self).__init__(*args, **kwargs)
 
     def forward(self, x):
-        action = self.policy(x)
+        action = super(DiscretePolicy, self).forward(x)
         probs = F.softmax(action.raw)
         action.value = probs.multinomial().data[:, 0].tolist()
         action.prob = probs[:, action.value][0].unsqueeze(0)
@@ -60,13 +59,12 @@ class DiscretePolicy(nn.Module):
         return action
 
 
-class DiagonalGaussianPolicy(nn.Module):
+class DiagonalGaussianPolicy(Policy):
 
     """ Similar to the ones in Schulman. """
 
-    def __init__(self, policy, action_size, init_value=-3.0):
-        super(DiagonalGaussianPolicy, self).__init__()
-        self.policy = policy
+    def __init__(self, model, action_size=1, init_value=-0.0, *args, **kwargs):
+        super(DiagonalGaussianPolicy, self).__init__(model, *args, **kwargs)
         self.init_value = init_value
         self.logstd = th.randn((1, action_size)) + self.init_value
         self.logstd = P(self.logstd)
@@ -81,7 +79,7 @@ class DiagonalGaussianPolicy(nn.Module):
         return a / b
 
     def forward(self, x):
-        action = self.policy(x)
+        action = super(DiagonalGaussianPolicy, self).forward(x)
         size = action.raw.size()
         value = action.raw + self.logstd.exp().expand_as(action.raw) * V(th.randn(size))
         value = value.detach()

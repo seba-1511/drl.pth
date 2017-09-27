@@ -5,8 +5,11 @@ import numpy as np
 import torch as th
 import torch.multiprocessing as mp
 
+from time import sleep
+
 from benchmark import train, test, train_update
-from utils import get_setup
+from drl.utils import get_setup
+
 
 def async_train(agent, opt, rank):
     # Proceed with training but keeping the current agent
@@ -24,6 +27,7 @@ if __name__ == '__main__':
     agent.policy.share_memory()
 
     for rank in range(num_processes):
+        sleep(1.0)
         p = mp.Process(target=async_train, args=(agent, opt, rank))
         p.start()
         processes.append(p)

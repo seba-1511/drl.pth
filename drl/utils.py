@@ -113,16 +113,16 @@ def get_setup(seed_offset=0):
     env.seed(args.seed)
     np.random.seed(args.seed)
     th.manual_seed(args.seed)
+    discrete = is_discrete(env)
     model, critic = get_model(args.model)(env.state_size,
                                           # env.action_size, layer_sizes=(8, 8),
                                           #env.action_size, layer_sizes=(64, 64),
                                           env.action_size, layer_sizes=(128, 128),
-                                          dropout=args.dropout)
-    policy = Policy(model)
-    if is_discrete(env):
-        policy = DiscretePolicy(policy)
+                                          dropout=args.dropout, discrete=discrete)
+    if discrete:
+        policy = DiscretePolicy(model)
     else:
-        policy = ContinuousPolicy(policy, action_size=env.action_size)
+        policy = ContinuousPolicy(model, action_size=env.action_size)
     policy.train()
     agent = get_algo(args.algo)(policy=policy, gamma=args.gamma,
                                 critic=critic,
