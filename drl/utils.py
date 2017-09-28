@@ -18,7 +18,7 @@ from gym.spaces import Discrete
 from .algos import Reinforce, Random
 from .models import FC2, LSTM2
 from .policies import ContinuousPolicy, DiscretePolicy, DiagonalGaussianPolicy, Policy
-from .env_converter import EnvWrapper, StateNormalizer,  numel
+from .env_converter import EnvWrapper, StateNormalizer, ActionNormalizer, numel
 
 
 def parse_args():
@@ -36,6 +36,8 @@ def parse_args():
                         default='fc', help='What kind of model to use')
     parser.add_argument('--opt', dest='opt', type=str,
                         default='SGD', help='What kind of optimizer to use')
+    parser.add_argument('--layer_sizes', dest='layer_sizes', type=int,
+                        default=128, help='Size of intermediary layers.')
     parser.add_argument('--dropout', dest='dropout', type=float,
                         default=0.0, help='Dropout rate between layers')
     parser.add_argument('--lr', dest='lr', type=float,
@@ -55,7 +57,7 @@ def parse_args():
     parser.add_argument('--print_interval', dest='print_interval', type=int,
                         default=1000, help='Number of steps between each print summary.')
     parser.add_argument('--momentum', dest='momentum', type=float,
-                        default=0.0, help='Default momentum value.')
+                        default=0.9, help='Default momentum value.')
     parser.add_argument('--gae', dest='gae', type=bool,
                         default=True, help='Whether to use GAE.')
     parser.add_argument('--gae_lam', dest='gae_lam', type=float,
@@ -116,9 +118,7 @@ def get_setup(seed_offset=0):
     th.manual_seed(args.seed)
     discrete = is_discrete(env)
     model, critic = get_model(args.model)(env.state_size,
-                                          # env.action_size, layer_sizes=(8, 8),
-                                          #env.action_size, layer_sizes=(64, 64),
-                                          env.action_size, layer_sizes=(128, 128),
+                                          env.action_size, layer_sizes=(args.layer_sizes, args.layer_sizes),
                                           dropout=args.dropout, discrete=discrete)
     recurrent = True if args.model == 'lstm' else 0
     if discrete:
@@ -132,5 +132,8 @@ def get_setup(seed_offset=0):
                                 update_frequency=args.update_frequency)
     opt = None
     if agent.parameters() is not None:
-        opt = get_opt(args.opt)(agent.parameters(), lr=args.lr)
+        if args.opt == 'SGD':
+            opt = optim.SGD(agent.parameters(), lr=args.lr, momentum=args.momentum)
+        else:
+            opt = get_opt(args.opt)(agent.parameters(), lr=args.lr)
     return args, env, agent, opt

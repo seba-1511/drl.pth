@@ -18,7 +18,7 @@ class DiscreteFeatures(nn.Module):
             raise Exception('Dropout not supported yet.')
         self.affine1 = nn.Linear(state_size, layer_sizes[0])
 
-    def forward(self, x):
+    def forward(self, x, *args, **kwargs):
         x = F.relu(self.affine1(x))
         return x
 
@@ -31,7 +31,7 @@ class ContinuousFeatures(nn.Module):
             raise Exception('Dropout not supported yet.')
         self.affine1 = nn.Linear(state_size, layer_sizes[0])
 
-    def forward(self, x):
+    def forward(self, x, *args, **kwargs):
         x = F.tanh(self.affine1(x))
         return x
 
@@ -108,7 +108,7 @@ class LSTMDiscreteFeatures(nn.Module):
 
     def forward(self, x, hiddens):
         hx, cx = self.lstm(x, hiddens)
-        return F.relu(hx), (hx, cx) 
+        return hx, (hx, cx) 
 
 
 class LSTMContinuousFeatures(nn.Module):
@@ -123,7 +123,7 @@ class LSTMContinuousFeatures(nn.Module):
 
     def forward(self, x, hiddens):
         hx, cx = self.lstm(x, hiddens)
-        return F.tanh(hx), (hx, cx) 
+        return hx, (hx, cx) 
 
 
 def FC2(state_size, action_size, layer_sizes=[128, 128], dropout=0.0, discrete=True):

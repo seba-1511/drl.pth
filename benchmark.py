@@ -12,13 +12,14 @@ from torch.autograd import Variable as V
 
 from drl.utils import get_setup
 
-def print_stats(name, rewards, n_iters, timing, steps):
+def print_stats(name, rewards, n_iters, timing, steps, updates):
     denom = max(len(rewards), 1)
     print('*'*20, name + ' Statistics Iteration ', n_iters, '*'*20)
     print('Total Reward: ', sum(rewards))
     print('Average Reward: ', sum(rewards)/denom)
     print('Total Timing: ', timing)
     print('Total Steps: ', steps)
+    print('Total Updates: ', updates)
     print('\n')
 
 def train_update(args, env, agent, opt):
@@ -26,9 +27,9 @@ def train_update(args, env, agent, opt):
     update = agent.get_update()
     opt.step()
 
-def sample_lstm_state():
-    hx = V(th.zeros(1, 128))
-    cx = V(th.zeros(1, 128))
+def sample_lstm_state(args):
+    hx = V(th.zeros(1, args.layer_sizes))
+    cx = V(th.zeros(1, args.layer_sizes))
     return hx, cx
 
 
@@ -41,9 +42,8 @@ def train(args, env, agent, opt, update, verbose=True):
     while train_steps < args.n_steps and not agent.done():
         state = env.reset()
         episode_reward = 0.0
-        hidden_state = sample_lstm_state()
+        hidden_state = sample_lstm_state(args)
         for path in range(args.max_path_length):
-
             while agent.updatable():
                 update(args, env, agent, opt)
                 num_updates += 1
@@ -55,7 +55,7 @@ def train(args, env, agent, opt, update, verbose=True):
                 if verbose:
                     n_iter = train_steps // args.print_interval
                     timing = time() - train_start
-                    print_stats('Train', iter_reward, n_iter, timing, train_steps)
+                    print_stats('Train', iter_reward, n_iter, timing, train_steps, num_updates)
                 iter_reward = []
 
             action, action_info = agent.act(state, hidden_state)
@@ -93,7 +93,7 @@ def test(args, env, agent):
     test_end = time()
     if args.record:
         pass
-    print_stats('Test', test_rewards, args.n_test_iter, time() - test_start, test_steps)
+    print_stats('Test', test_rewards, args.n_test_iter, time() - test_start, test_steps, 0)
     return test_rewards
 
 

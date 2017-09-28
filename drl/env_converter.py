@@ -143,3 +143,21 @@ class StateNormalizer(EnvConverter):
         return self.normalize(next_state)
 
 
+class ActionNormalizer(EnvConverter):
+
+    """
+    Given an action in the range [0, 1], scales it to the range of a Gym
+    environment.
+
+    Only for continuous environments !
+    """
+
+    def __init__(self, env):
+        self.env = env
+        self.high = env.action_space.high
+        self.low = env.action_space.low
+
+    def step(self, action):
+        action *= (self.high - self.low)
+        action += self.low
+        return self.env.step(action)

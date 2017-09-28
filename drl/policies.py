@@ -41,11 +41,11 @@ class Policy(nn.Module):
 
     def forward(self, x, *args, **kwargs):
         out = self.model(x, *args, **kwargs)
+        returns =[None, ] 
         if self.returns_args:
             returns = out[1:]
             out = out[0]
-            return Action(raw=out, returns=returns, args=args, kwargs=kwargs)
-        return Action(raw=out, args=args, kwargs=kwargs)
+        return Action(raw=out, returns=returns, args=args, kwargs=kwargs)
 
 
 class DiscretePolicy(Policy):
