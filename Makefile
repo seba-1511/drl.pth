@@ -3,13 +3,13 @@ ALGO=ppo
 ALGO=reinforce
 N_STEPS=100000000
 TEST_N_STEPS=100
-NUM_WORKERS=8
+NUM_WORKERS=2
 DROPOUT=0.0
 
 ENV=CartPole-v0
-ENV=InvertedPendulum-v1
+#ENV=InvertedPendulum-v1
 MODEL=fc
-MODEL=lstm
+#MODEL=lstm
 
 ifeq ($(ENV),CartPole-v0)
 ifeq ($(MODEL),fc)
@@ -43,7 +43,10 @@ endif
 all: dev
 
 async:
-	python async_bench.py --n_proc $(NUM_WORKERS) --algo $(ALGO) --env $(ENV) --n_steps $(N_STEPS) --n_test_iter 100 --opt $(OPT) --lr $(LR) --update_frequency 00 --max_path_length 5000
+	python async_bench.py --n_proc $(NUM_WORKERS) --algo $(ALGO) --env $(ENV) --n_steps $(N_STEPS) --n_test_iter 100 --opt $(OPT) --lr $(LR) --layer_size $(LAYER_SIZE) --model $(MODEL) --update_frequency 00 --max_path_length 5000
+
+sync:
+	python sync_bench.py --n_proc $(NUM_WORKERS) --algo $(ALGO) --env $(ENV) --n_steps $(N_STEPS) --n_test_iter 100 --opt $(OPT) --lr $(LR) --layer_size $(LAYER_SIZE) --model $(MODEL) --update_frequency 00 --max_path_length 5000
 
 dev:
 	python benchmark.py --algo $(ALGO) --env $(ENV) --n_steps $(N_STEPS) --model $(MODEL) --dropout $(DROPOUT) --n_test_iter 100 --opt $(OPT) --lr $(LR) --layer_size $(LAYER_SIZE) --update_frequency 00 --max_path_length 5000

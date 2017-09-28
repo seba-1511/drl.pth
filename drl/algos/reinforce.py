@@ -68,10 +68,6 @@ class Reinforce(BaseAgent):
         self.entropies.append([])
 
     def get_update(self):
-        """
-        TODO:
-            * lstm -> the right way to do it: let arguments be passed through agent, policy, and directly fed into the model.
-        """
         for actions_ep, rewards_ep, critics_ep, entropy_ep in zip(self.actions, self.rewards, self.critics, self.entropies):
             if len(actions_ep) > 0:
                 rewards = discount(rewards_ep, self.gamma)

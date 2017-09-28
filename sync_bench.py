@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
 
+import os
 import numpy as np
 import torch as th
 import torch.distributed as dist
@@ -8,16 +9,20 @@ import torch.distributed as dist
 from torch.multiprocessing import Process
 from torch._utils import _flatten_tensors, _unflatten_tensors
 
+from drl.utils import get_setup, parse_args
+
 from benchmark import train, test
-from utils import get_setup, parse_args
 
 
 def sync(tensors):
     size = float(dist.get_world_size())
-    flat_tensors = _flatten_tensors(tensors)
-    dist.all_reduce(flat_tensors, dist.reduce_op.SUM)
-    for p, u in zip(tensors, _unflatten_tensors(flat_tensors, tensors)):
-        p.set_(u / size)
+    for t in tensors:
+        dist.all_reduce(t.data)
+        t.data /= size
+#    flat_tensors = _flatten_tensors(tensors)
+#    dist.all_reduce(flat_tensors, dist.reduce_op.SUM)
+#    for p, u in zip(tensors, _unflatten_tensors(flat_tensors, tensors)):
+#        p.set_(u / size)
 
 
 def sync_update(args, env, agent, opt):
@@ -31,7 +36,7 @@ def sync_update(args, env, agent, opt):
 def run(rank, size):
     is_root = (rank == 0)
     args, env, agent, opt = get_setup(seed_offset=rank)
-    sync([p for p in agent.parameters()])
+    sync(list(agent.parameters()))
     train(args, env, agent, opt, sync_update, verbose=is_root)
     if is_root:
         test(args, env, agent)
