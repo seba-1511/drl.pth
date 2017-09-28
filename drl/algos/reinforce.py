@@ -20,6 +20,7 @@ class Reinforce(BaseAgent):
 
     def __init__(self, policy=None, critic=None, gamma=0.99, update_frequency=1000, entropy_weight=0.01, critic_weight=0.5,
                  grad_clip=50.0):
+        super(Reinforce, self).__init__()
         self.policy = policy
         self.gamma = gamma
         if critic is None:

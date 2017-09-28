@@ -115,6 +115,7 @@ def get_setup(seed_offset=0):
 #    env = StateNormalizer(env)
     env.seed(args.seed)
     np.random.seed(args.seed)
+    # Don't use the following line in async and version 0.2.0
     th.manual_seed(args.seed)
     discrete = is_discrete(env)
     model, critic = get_model(args.model)(env.state_size,

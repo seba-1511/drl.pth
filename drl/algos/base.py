@@ -1,11 +1,16 @@
 #!/usr/bin/env python
 
+from torch import nn
 
-class BaseAgent(object):
+
+class BaseAgent(nn.Module):
 
     """
     The base of all agents.
     """
+
+    def __init__(self):
+        super(BaseAgent, self).__init__()
 
     def parameters(self):
         """ Provides access to all learnable parameters of the agent. """

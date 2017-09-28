@@ -14,7 +14,7 @@ from drl.utils import get_setup
 def async_train(agent, opt, rank):
     # Proceed with training but keeping the current agent
     args, env, _, _ = get_setup(seed_offset=rank)
-    verbose = rank == 0
+    verbose = (rank == 0) 
     train(args, env, agent, opt, train_update, verbose)
 
 
@@ -24,7 +24,7 @@ if __name__ == '__main__':
     processes = []
 
     # Share parameters of the policy (and opt)
-    agent.policy.share_memory()
+    agent.share_memory()
 
     for rank in range(num_processes):
         sleep(1.0)
