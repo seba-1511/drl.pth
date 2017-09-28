@@ -23,6 +23,7 @@ class Action(object):
         probs: the probability of this action.
         log_prob: the log probability of the action.
         entropy: the entropy of the action.
+        args: additional arguments returned from model.forward(s)
     """
 
     def __init__(self, **kwargs):
@@ -33,14 +34,19 @@ class Policy(nn.Module):
     
     """ Transforms a nn.Module into a Policy that returns an Action(). """
 
-    def __init__(self, model, recurrent=False, *args, **kwargs):
+    def __init__(self, model, returns_args=False, *args, **kwargs):
         super(Policy, self).__init__()
         self.model = model
-        self.recurrent = recurrent
+        self.returns_args = returns_args
 
-    def forward(self, x):
-        activations = self.model(x)
-        return Action(raw=activations)
+    def forward(self, x, *args, **kwargs):
+        out = self.model(x, *args, **kwargs)
+        if self.returns_args:
+            returns = out[1:]
+            out = out[0]
+            return Action(raw=out, returns=returns, args=args, kwargs=kwargs)
+        return Action(raw=out, args=args, kwargs=kwargs)
+
 
 class DiscretePolicy(Policy):
 
@@ -49,8 +55,8 @@ class DiscretePolicy(Policy):
     def __init__(self, *args, **kwargs):
         super(DiscretePolicy, self).__init__(*args, **kwargs)
 
-    def forward(self, x):
-        action = super(DiscretePolicy, self).forward(x)
+    def forward(self, x, *args, **kwargs):
+        action = super(DiscretePolicy, self).forward(x, *args, **kwargs)
         probs = F.softmax(action.raw)
         action.value = probs.multinomial().data[:, 0].tolist()
         action.prob = probs[:, action.value][0].unsqueeze(0)
@@ -78,8 +84,8 @@ class DiagonalGaussianPolicy(Policy):
         b = (2 * std_sq * self.pi.expand_as(std_sq)).sqrt()
         return a / b
 
-    def forward(self, x):
-        action = super(DiagonalGaussianPolicy, self).forward(x)
+    def forward(self, x, *args, **kwargs):
+        action = super(DiagonalGaussianPolicy, self).forward(x, *args, **kwargs)
         size = action.raw.size()
         value = action.raw + self.logstd.exp().expand_as(action.raw) * V(th.randn(size))
         value = value.detach()

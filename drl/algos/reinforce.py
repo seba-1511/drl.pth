@@ -49,15 +49,15 @@ class Reinforce(BaseAgent):
             state = state.unsqueeze(0)
         return V(state)
 
-    def act(self, state):
+    def act(self, state, *args, **kwargs):
         state = self._variable(state)
-        action = self.policy(state)
+        action = self.policy(state, *args, **kwargs)
         return action.value[0], action
 
     def learn(self, state, action, reward, next_state, done, info=None):
         self.rewards[-1].append(reward)
         self.actions[-1].append(info.log_prob)
-        self.critics[-1].append(self.critic(self._variable(state)))
+        self.critics[-1].append(self.critic(self._variable(state), *info.args, **info.kwargs))
         self.entropies[-1].append(info.entropy)
         self.steps += 1
 

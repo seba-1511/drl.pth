@@ -8,6 +8,8 @@ import torch as th
 from gym import wrappers
 from time import time
 
+from torch.autograd import Variable as V
+
 from drl.utils import get_setup
 
 def print_stats(name, rewards, n_iters, timing, steps):
@@ -24,6 +26,12 @@ def train_update(args, env, agent, opt):
     update = agent.get_update()
     opt.step()
 
+def sample_lstm_state():
+    hx = V(th.zeros(1, 128))
+    cx = V(th.zeros(1, 128))
+    return hx, cx
+
+
 def train(args, env, agent, opt, update, verbose=True):
     train_rewards = []
     iter_reward = []
@@ -33,6 +41,7 @@ def train(args, env, agent, opt, update, verbose=True):
     while train_steps < args.n_steps and not agent.done():
         state = env.reset()
         episode_reward = 0.0
+        hidden_state = sample_lstm_state()
         for path in range(args.max_path_length):
 
             while agent.updatable():
@@ -49,7 +58,8 @@ def train(args, env, agent, opt, update, verbose=True):
                     print_stats('Train', iter_reward, n_iter, timing, train_steps)
                 iter_reward = []
 
-            action, action_info = agent.act(state)
+            action, action_info = agent.act(state, hidden_state)
+            hidden_state = action_info.returns[0]
             if args.render:
                 env.render()
             next_state, reward, done, _ = env.step(action)

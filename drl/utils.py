@@ -16,7 +16,7 @@ from torch import optim
 from gym.spaces import Discrete
 
 from .algos import Reinforce, Random
-from .models import FC2
+from .models import FC2, LSTM2
 from .policies import ContinuousPolicy, DiscretePolicy, DiagonalGaussianPolicy, Policy
 from .env_converter import EnvWrapper, StateNormalizer,  numel
 
@@ -86,6 +86,7 @@ def get_algo(name):
 def get_model(name):
     model = {
         'fc': FC2,
+        'lstm': LSTM2,
     }
     return model[name]
 
@@ -119,10 +120,12 @@ def get_setup(seed_offset=0):
                                           #env.action_size, layer_sizes=(64, 64),
                                           env.action_size, layer_sizes=(128, 128),
                                           dropout=args.dropout, discrete=discrete)
+    recurrent = True if args.model == 'lstm' else 0
     if discrete:
-        policy = DiscretePolicy(model)
+        policy = DiscretePolicy(model, returns_args=recurrent)
     else:
-        policy = ContinuousPolicy(model, action_size=env.action_size)
+        policy = ContinuousPolicy(model, action_size=env.action_size,
+                                  returns_args=recurrent)
     policy.train()
     agent = get_algo(args.algo)(policy=policy, gamma=args.gamma,
                                 critic=critic,
