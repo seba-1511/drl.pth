@@ -8,8 +8,8 @@ DROPOUT=0.0
 
 ENV=CartPole-v0
 #ENV=InvertedPendulum-v1
-MODEL=fc
-#MODEL=lstm
+#MODEL=fc
+MODEL=lstm
 
 ifeq ($(ENV),CartPole-v0)
 ifeq ($(MODEL),fc)

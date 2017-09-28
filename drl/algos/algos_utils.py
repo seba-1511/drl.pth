@@ -14,6 +14,39 @@ PI = 3.141592654
 LOG2PI = log(2.0 * PI)
 
 
+class DiscountedAdvantage(object):
+
+    def __init__(self, gamma=0.99, normalize=True):
+        self.gamma = gamma
+        self.normalize = normalize
+
+    def __call__(self, rewards, critics, *args, **kwargs):
+        discounted = discount(rewards, self.gamma)
+        if self.normalize:
+            discounted = normalize(discounted)
+        critics = th.cat(critics, 1)[0]
+        discounted = V(discounted)
+        advantage = discounted - critics
+        return advantage
+
+
+class GeneralizedAdvantageEstimation(object):
+
+    def __init__(self, gamma=0.99, tau=0.97, normalize=True):
+        self.gamma = gamma
+        self.tau = tau
+        self.normalize = normalize
+
+    def __call__(self, rewards, critics, *args, **kwargs):
+        discounted = generalized_advantage_estimations(rewards,
+                                                       critics,
+                                                       self.gamma,
+                                                       self.tau)
+        if self.normalize:
+            discounted = normalize(discounted)
+        return discounted
+
+
 def discount(rewards, gamma):
     R = 0.0
     discounted = []
@@ -32,6 +65,7 @@ def generalized_advantage_estimations(rewards, critics, gamma, tau):
         gae = gae * gamma * tau + delta
         gaes.insert(0, gae)
         prev_c = c
+    gaes = th.cat(gaes).view(-1)
     return gaes
 
 

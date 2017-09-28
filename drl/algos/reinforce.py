@@ -11,21 +11,23 @@ from math import pi, exp
 from itertools import chain
 
 from .base import BaseAgent
-from .algos_utils import discount, normalize, EPSILON
+from .algos_utils import DiscountedAdvantage, normalize, EPSILON
 
 from ..models import ConstantCritic
 
 
 class Reinforce(BaseAgent):
 
-    def __init__(self, policy=None, critic=None, gamma=0.99, update_frequency=1000, entropy_weight=0.01, critic_weight=0.5,
+    def __init__(self, policy=None, critic=None, advantage=None, update_frequency=1000, entropy_weight=0.01, critic_weight=0.5,
                  grad_clip=50.0):
         super(Reinforce, self).__init__()
         self.policy = policy
-        self.gamma = gamma
         if critic is None:
             critic = ConstantCritic(0)
         self.critic = critic
+        if advantage is None:
+            advantage = DiscountedAdvantage()
+        self.advantage = advantage
         self.entropy_weight = entropy_weight
         self.critic_weight = critic_weight
         self.update_frequency = update_frequency
@@ -71,15 +73,12 @@ class Reinforce(BaseAgent):
     def get_update(self):
         for actions_ep, rewards_ep, critics_ep, entropy_ep in zip(self.actions, self.rewards, self.critics, self.entropies):
             if len(actions_ep) > 0:
-                rewards = discount(rewards_ep, self.gamma)
-                rewards = normalize(rewards)
-                policy_loss = 0.0
-                critic_loss = 0.0
+                advantage_ep = self.advantage(rewards_ep, critics_ep)
+                critic_loss = advantage_ep.pow(2).sum()
                 entropy_loss = th.cat(entropy_ep).mean()
-                for action, r, critic in zip(actions_ep, rewards, critics_ep):
-                    advantage = V(T([r])) - critic
-                    policy_loss = policy_loss + action.sum() * advantage.data[0, 0]
-                    critic_loss = critic_loss + advantage.pow(2)
+                policy_loss = 0.0
+                for action_log, advantage in zip(actions_ep, advantage_ep):
+                    policy_loss = policy_loss + action_log.sum() * advantage.data[0]
                 critic_loss = self.critic_weight * critic_loss
                 entropy_loss = self.entropy_weight * entropy_loss
                 loss = - policy_loss + critic_loss - entropy_loss

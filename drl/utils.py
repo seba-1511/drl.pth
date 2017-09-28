@@ -19,6 +19,7 @@ from .algos import Reinforce, Random
 from .models import FC2, LSTM2
 from .policies import ContinuousPolicy, DiscretePolicy, DiagonalGaussianPolicy, Policy
 from .env_converter import EnvWrapper, StateNormalizer, ActionNormalizer, numel
+from .algos.algos_utils import DiscountedAdvantage, GeneralizedAdvantageEstimation
 
 
 def parse_args():
@@ -128,9 +129,11 @@ def get_setup(seed_offset=0):
         policy = ContinuousPolicy(model, action_size=env.action_size,
                                   returns_args=recurrent)
     policy.train()
-    agent = get_algo(args.algo)(policy=policy, gamma=args.gamma,
+    agent = get_algo(args.algo)(policy=policy,
                                 critic=critic,
-                                update_frequency=args.update_frequency)
+                                update_frequency=args.update_frequency,
+#                                advantage=DiscountedAdvantage())
+                                advantage=GeneralizedAdvantageEstimation())
     opt = None
     if agent.parameters() is not None:
         if args.opt == 'SGD':
