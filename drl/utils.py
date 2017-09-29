@@ -116,7 +116,6 @@ def get_setup(seed_offset=0):
     if args.render:
         env.render(mode='human')
     env = EnvWrapper(env)
-#    env = StateNormalizer(env)
     env.seed(args.seed)
     np.random.seed(args.seed)
     # Don't use the following line in async and version 0.2.0
@@ -129,6 +128,7 @@ def get_setup(seed_offset=0):
     if discrete:
         policy = DiscretePolicy(model, returns_args=recurrent)
     else:
+        env = StateNormalizer(env, env.state_size)
         policy = ContinuousPolicy(model, action_size=env.action_size,
                                   returns_args=recurrent)
     policy.train()

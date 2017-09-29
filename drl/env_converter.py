@@ -114,24 +114,30 @@ class StateNormalizer(EnvConverter):
     Normalizes the state using a simple moving average.
     """
 
-    def __init__(self, env, memory_size=100, per_dimension=False):
-        super(StateNormalizer, self).__init__(env)
+    def __init__(self, env, shape, clip=10.0, update_freq=100):
         self.env = env
-        self.per_dimension = per_dimension
-        self.per_dimension = True
-        self.ratio = 1.0 / float(memory_size)
-        self.neg_ratio = 1.0 - self.ratio
-        self.mean = 0.0
-        self.var = 0.0
+        self.clip = clip
+        self.update_freq = update_freq
+        self.count = 0
+        self.sum = 0.0
+        self.sum_sqr = 0.0
+        self.mean = np.zeros(shape, dtype=np.double)
+        self.std = np.ones(shape, dtype=np.double)
 
     def normalize(self, new_state):
-        x = new_state
-        if not self.per_dimension:
-            x = np.mean(x)
-        self.mean = self.neg_ratio * self.mean + self.ratio * x
-        self.var = self.neg_ratio * self.var + self.ratio * (x - self.mean)**2
-        state = (new_state - self.mean) / (np.sqrt(self.var) + EPSILON)
-        return state
+        # Update
+        self.count += 1
+        self.sum += new_state
+        self.sum_sqr += new_state**2
+        if self.count % self.update_freq == 0:
+            self.mean = self.sum / self.count
+            self.std = self.sum_sqr / self.count - self.mean**2
+            self.std = np.clip(self.std, 1e-2, 1e9)**0.5
+        # Normalize
+        new_state = new_state - self.mean
+        new_state = new_state / self.std
+        new_state = np.clip(new_state, -self.clip, self.clip)
+        return new_state
 
     def step(self, action):
         next_state, reward, done, info = self.env.step(action)
