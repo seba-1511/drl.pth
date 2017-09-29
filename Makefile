@@ -1,13 +1,22 @@
 
+# TODO: 
+# Morning:
+# - Try value function from raw state
+# - Add pritning of statistics
+# Afternoon:
+# - Implement PPO
+# - Have a benchmark suit and possibly plot all envs
+
 ALGO=ppo
 ALGO=reinforce
-N_STEPS=1000
+N_STEPS=100000
 TEST_N_STEPS=100
 NUM_WORKERS=2
 DROPOUT=0.0
 
 ENV=CartPole-v0
 #ENV=InvertedPendulum-v1
+#ENV=InvertedDoublePendulum-v1
 #ENV=Ant-v1
 #ENV=InvertedPendulumBulletEnv-v0
 MODEL=fc
@@ -39,6 +48,20 @@ OPT=SGD
 endif
 endif
 
+ifeq ($(ENV),InvertedDoublePendulum-v1)
+ifeq ($(MODEL),fc)
+LAYER_SIZE=128
+LR=0.005
+OPT=Adam
+endif
+ifeq ($(MODEL),lstm)
+LAYER_SIZE=16
+LR=0.003
+OPT=SGD
+endif
+endif
+
+
 ifeq ($(ENV),InvertedPendulumBulletEnv-v0)
 ifeq ($(MODEL),fc)
 LAYER_SIZE=128
@@ -54,7 +77,7 @@ endif
 
 ifeq ($(ENV),Ant-v1)
 ifeq ($(MODEL),fc)
-LAYER_SIZE=64
+LAYER_SIZE=128
 LR=0.01
 OPT=Adam
 endif
@@ -78,6 +101,12 @@ sync:
 
 dev:
 	python benchmark.py --algo $(ALGO) --env $(ENV) --n_steps $(N_STEPS) --model $(MODEL) --dropout $(DROPOUT) --n_test_iter 100 --opt $(OPT) --lr $(LR) --layer_size $(LAYER_SIZE) --update_frequency 000 --max_path_length 50000
+
+
+bench:
+	python benchmark.py --algo $(ALGO) --env Ant-v1 --n_steps 250000 --model fc --dropout $(DROPOUT) --n_test_iter 100 --opt Adam --lr 7e-4 --layer_size 64 --update_frequency 000 --max_path_length 50000
+	python benchmark.py --algo $(ALGO) --env Ant-v1 --n_steps 250000 --model lstm --dropout $(DROPOUT) --n_test_iter 100 --opt SGD --lr 0.00073 --layer_size 32 --update_frequency 000 --max_path_length 50000
+	python benchmark.py --algo $(ALGO) --env Ant-v1 --n_steps 250000 --model fc --dropout $(DROPOUT) --n_test_iter 100 --opt Adam --lr 7e-4 --layer_size 128 --update_frequency 000 --max_path_length 50000
 
 test:
 	for algo in reinforce acreinforce a3c; do \

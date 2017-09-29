@@ -10,6 +10,14 @@ from torch.autograd import Variable as V
 from functools import reduce
 
 
+class NoOp(nn.Module):
+    def __init__(self):
+        super(NoOp, self).__init__()
+
+    def forward(self, x):
+        return x
+
+
 class DiscreteFeatures(nn.Module):
 
     def __init__(self, state_size, layer_sizes=[128, 128], dropout=0.0):
@@ -139,6 +147,8 @@ def FC2(state_size, action_size, layer_sizes=[128, 128], dropout=0.0, discrete=T
                                 action_size=action_size)
     critic = Critic(feature_extractor=features,
                     state_size=layer_sizes[-1])
+#    critic = Critic(feature_extractor=ContinuousFeatures(state_size, layer_sizes, dropout),
+#                    state_size=layer_sizes[-1])
     return (actor, critic)
 
 
@@ -155,6 +165,8 @@ def LSTM2(state_size, action_size, layer_sizes=[128, 128], dropout=0.0, discrete
                                 features_size=layer_sizes[-1],
                                 action_size=action_size,
                                 recurrent=True)
-    critic = Critic(feature_extractor=features,
-                    state_size=layer_sizes[-1], recurrent=True)
+    critic = Critic(feature_extractor=ContinuousFeatures(state_size, layer_sizes, dropout),
+                    state_size=layer_sizes[-1])
+    #critic = Critic(feature_extractor=features,
+    #                state_size=layer_sizes[-1], recurrent=True)
     return (actor, critic)

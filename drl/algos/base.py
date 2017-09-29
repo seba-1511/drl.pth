@@ -12,11 +12,15 @@ class BaseAgent(nn.Module):
     def __init__(self):
         super(BaseAgent, self).__init__()
 
-    def parameters(self):
-        """ Provides access to all learnable parameters of the agent. """
-        return None
+    def reset_stats(self, stats):
+        """ Resets all statistics or sets them to `stats`. """
+        raise NotImplementedError()
 
-    def act(self, state):
+    def get_stats(self, stats):
+        """ Returns all statistics. """
+        return self.stats
+
+    def forward(self, state, *args, **kwargs):
         """ Returns an action to be taken. """
         raise NotImplementedError()
 

@@ -12,14 +12,20 @@ from torch.autograd import Variable as V
 from drl.utils import get_setup
 
 
-def print_stats(name, rewards, n_iters, timing, steps, updates):
+def print_stats(name, rewards, n_iters, timing, steps, updates, agent):
     denom = max(len(rewards), 1)
     print('*' * 20, name + ' Statistics Iteration ', n_iters, '*' * 20)
+    print('--- Global Stats ---')
     print('Total Reward: ', sum(rewards))
     print('Average Reward: ', sum(rewards) / denom)
     print('Total Timing: ', timing)
     print('Total Steps: ', steps)
     print('Total Updates: ', updates)
+    print('\n')
+    print('--- Iteration Stats ---')
+    for key, val in agent.get_stats().items():
+        print(key + ':', val)
+    agent.reset_stats()
     print('\n')
 
 
@@ -57,10 +63,10 @@ def train(args, env, agent, opt, update, verbose=True):
                 if verbose:
                     n_iter = train_steps // args.print_interval
                     timing = time() - train_start
-                    print_stats('Train', iter_reward, n_iter, timing, train_steps, num_updates)
+                    print_stats('Train', iter_reward, n_iter, timing, train_steps, num_updates, agent)
                 iter_reward = []
 
-            action, action_info = agent.act(state, hidden_state)
+            action, action_info = agent.forward(state, hidden_state)
             hidden_state = action_info.returns[0]
             if args.render:
                 env.render()
@@ -88,11 +94,11 @@ def test(args, env, agent):
         done = False
         while not done:
             test_steps += 1
-            action, _ = agent.act(state)
+            action, _ = agent.forward(state)
             state, reward, done, _ = env.step(action)
             iter_rewards += reward
         test_rewards.append(iter_rewards)
-    print_stats('Test', test_rewards, args.n_test_iter, time() - test_start, test_steps, 0)
+    print_stats('Test', test_rewards, args.n_test_iter, time() - test_start, test_steps, 0, agent)
     return test_rewards
 
 
