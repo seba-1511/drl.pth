@@ -1,14 +1,11 @@
 
 # TODO: 
-# Morning:
-# - Try value function from raw state
-# - Add pritning of statistics
 # Afternoon:
 # - Implement PPO
 # - Have a benchmark suit and possibly plot all envs
 
 ALGO=ppo
-ALGO=reinforce
+#ALGO=reinforce
 N_STEPS=100000
 TEST_N_STEPS=100
 NUM_WORKERS=2

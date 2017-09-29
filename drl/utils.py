@@ -16,7 +16,7 @@ from argparse import ArgumentParser
 from torch import optim
 from gym.spaces import Discrete
 
-from .algos import Reinforce, Random
+from .algos import Reinforce, Random, PPO
 from .models import FC2, LSTM2
 from .policies import ContinuousPolicy, DiscretePolicy, DiagonalGaussianPolicy, Policy
 from .env_converter import EnvWrapper, StateNormalizer, ActionNormalizer, numel
@@ -83,6 +83,7 @@ def get_algo(name):
     algos = {
         'reinforce': Reinforce,
         'random': Random,
+        'ppo': PPO,
     }
     return algos[name]
 
