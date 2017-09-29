@@ -25,10 +25,8 @@ class DiscountedAdvantage(object):
         discounted = discount(rewards, self.gamma)
         if self.normalize:
             discounted = normalize(discounted)
-        critics = th.cat(critics, 1)[0]
-        discounted = V(discounted)
         advantage = discounted - critics
-        return advantage
+        return discounted, advantage
 
 
 class GeneralizedAdvantageEstimation(object):
@@ -39,13 +37,15 @@ class GeneralizedAdvantageEstimation(object):
         self.normalize = normalize
 
     def __call__(self, rewards, values, *args, **kwargs):
-        discounted = generalized_advantage_estimations(rewards,
-                                                       values,
-                                                       self.gamma,
-                                                       self.tau)
+        advantage = generalized_advantage_estimations(rewards,
+                                                values,
+                                                self.gamma,
+                                                self.tau)
+        discounted = discount(rewards, self.gamma)
         if self.normalize:
+            advantage = normalize(advantage)
             discounted = normalize(discounted)
-        return discounted
+        return discounted, advantage
 
 
 def discount(rewards, gamma):
@@ -65,9 +65,8 @@ def discount(rewards, gamma):
 
 def generalized_advantage_estimations(rewards, values, gamma, tau):
     rewards = discount(rewards, gamma)
-    values.append(V(T([0.0])))
-    values = th.cat(values).view(-1)
-    deltas = V(rewards) + gamma * values[1:] - values[:-1]
+    values = th.cat([values, V(T([0.0]))])
+    deltas = rewards + gamma * values[1:] - values[:-1]
     advantage = discount(deltas, gamma * tau)
     return advantage
 

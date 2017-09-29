@@ -59,7 +59,7 @@ def parse_args():
     parser.add_argument('--print_interval', dest='print_interval', type=int,
                         default=1000, help='Number of steps between each print summary.')
     parser.add_argument('--momentum', dest='momentum', type=float,
-                        default=0.9, help='Default momentum value.')
+                        default=0.8, help='Default momentum value.')
     parser.add_argument('--gae', dest='gae', type=bool,
                         default=True, help='Whether to use GAE.')
     parser.add_argument('--gae_lam', dest='gae_lam', type=float,
@@ -135,8 +135,8 @@ def get_setup(seed_offset=0):
     agent = get_algo(args.algo)(policy=policy,
                                 critic=critic,
                                 update_frequency=args.update_frequency,
-                                advantage=DiscountedAdvantage())
-#                                advantage=GeneralizedAdvantageEstimation())
+#                                advantage=DiscountedAdvantage())
+                                advantage=GeneralizedAdvantageEstimation())
     opt = None
     if agent.parameters() is not None:
         if args.opt == 'SGD':

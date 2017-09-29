@@ -73,8 +73,10 @@ class Reinforce(BaseAgent):
     def get_update(self):
         for actions_ep, rewards_ep, critics_ep, entropy_ep in zip(self.actions, self.rewards, self.critics, self.entropies):
             if len(actions_ep) > 0:
-                advantage_ep = self.advantage(rewards_ep, critics_ep)
-                critic_loss = advantage_ep.pow(2).sum()
+                rewards_ep = V(T(rewards_ep))
+                critics_ep = th.cat(critics_ep, 0).view(-1)
+                rewards_ep, advantage_ep = self.advantage(rewards_ep, critics_ep)
+                critic_loss = (rewards_ep - critics_ep).pow(2).mean()
                 entropy_loss = th.cat(entropy_ep).mean()
                 policy_loss = 0.0
                 for action_log, advantage in zip(actions_ep, advantage_ep):

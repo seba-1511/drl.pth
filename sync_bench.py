@@ -2,12 +2,11 @@
 from __future__ import print_function
 
 import os
-import numpy as np
+import randopt as ro
 import torch as th
 import torch.distributed as dist
-import torch.distributed as dist
 from torch.multiprocessing import Process
-from torch._utils import _flatten_tensors, _unflatten_tensors
+from time import time
 
 from drl.utils import get_setup, parse_args
 
@@ -19,10 +18,6 @@ def sync(tensors):
     for t in tensors:
         dist.all_reduce(t.data)
         t.data /= size
-#    flat_tensors = _flatten_tensors(tensors)
-#    dist.all_reduce(flat_tensors, dist.reduce_op.SUM)
-#    for p, u in zip(tensors, _unflatten_tensors(flat_tensors, tensors)):
-#        p.set_(u / size)
 
 
 def sync_update(args, env, agent, opt):
@@ -36,10 +31,17 @@ def sync_update(args, env, agent, opt):
 def run(rank, size):
     is_root = (rank == 0)
     args, env, agent, opt = get_setup(seed_offset=rank)
+    exp = ro.Experiment(args.env + '-dev-sync', params={})
     sync(list(agent.parameters()))
-    train(args, env, agent, opt, sync_update, verbose=is_root)
+    train_rewards = train(args, env, agent, opt, sync_update, verbose=is_root)
     if is_root:
-        test(args, env, agent)
+        test_rewards = test(args, env, agent)
+        data = {p: getattr(args, p) for p in vars(args)}
+        data['train_rewards'] = train_rewards
+        data['test_rewards'] = test_rewards
+        data['timestamp'] = time()
+        exp.add_result(result=sum(test_rewards) / len(test_rewards),
+                       data=data)
 
 
 def init_processes(rank, size, fn, backend='tcp'):

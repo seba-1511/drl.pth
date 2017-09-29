@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 from __future__ import print_function
 
-import gym; #gym.make('PongDeterministic-v4') # Somehow, required to init an env before import torch.
+import randopt as ro
 import torch as th
 
-# from seb.plot import Plot
 from gym import wrappers
 from time import time
 
@@ -12,20 +11,23 @@ from torch.autograd import Variable as V
 
 from drl.utils import get_setup
 
+
 def print_stats(name, rewards, n_iters, timing, steps, updates):
     denom = max(len(rewards), 1)
-    print('*'*20, name + ' Statistics Iteration ', n_iters, '*'*20)
+    print('*' * 20, name + ' Statistics Iteration ', n_iters, '*' * 20)
     print('Total Reward: ', sum(rewards))
-    print('Average Reward: ', sum(rewards)/denom)
+    print('Average Reward: ', sum(rewards) / denom)
     print('Total Timing: ', timing)
     print('Total Steps: ', steps)
     print('Total Updates: ', updates)
     print('\n')
 
+
 def train_update(args, env, agent, opt):
     opt.zero_grad()
     update = agent.get_update()
     opt.step()
+
 
 def sample_lstm_state(args):
     hx = V(th.zeros(1, args.layer_sizes))
@@ -90,15 +92,18 @@ def test(args, env, agent):
             state, reward, done, _ = env.step(action)
             iter_rewards += reward
         test_rewards.append(iter_rewards)
-    test_end = time()
-    if args.record:
-        pass
     print_stats('Test', test_rewards, args.n_test_iter, time() - test_start, test_steps, 0)
     return test_rewards
 
 
-
 if __name__ == '__main__':
     args, env, agent, opt = get_setup()
-    train(args, env, agent, opt, train_update)
-    test(args, env, agent)
+    exp = ro.Experiment(args.env + '-dev-seq', params={})
+    train_rewards = train(args, env, agent, opt, train_update)
+    test_rewards = test(args, env, agent)
+    data = {p: getattr(args, p) for p in vars(args)}
+    data['train_rewards'] = train_rewards
+    data['test_rewards'] = test_rewards
+    data['timestamp'] = time()
+    exp.add_result(result=sum(test_rewards) / len(test_rewards),
+                   data=data)

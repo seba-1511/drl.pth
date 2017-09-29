@@ -1,25 +1,25 @@
 
 ALGO=ppo
 ALGO=reinforce
-N_STEPS=100000
+N_STEPS=1000
 TEST_N_STEPS=100
-NUM_WORKERS=4
+NUM_WORKERS=2
 DROPOUT=0.0
 
 ENV=CartPole-v0
-ENV=InvertedPendulum-v1
+#ENV=InvertedPendulum-v1
+#ENV=Ant-v1
 #ENV=InvertedPendulumBulletEnv-v0
 MODEL=fc
-MODEL=lstm
+#MODEL=lstm
 
 ifeq ($(ENV),CartPole-v0)
-ifeq ($(MODEL),fc) # Solved in 10 eps
+ifeq ($(MODEL),fc)
 LAYER_SIZE=128
 OPT=Adam
 LR=0.01
-#LR=0.005
 endif
-ifeq ($(MODEL),lstm) # Solved in 7 eps
+ifeq ($(MODEL),lstm)
 LAYER_SIZE=32
 LR=0.0073
 OPT=SGD
@@ -27,14 +27,14 @@ endif
 endif
 
 ifeq ($(ENV),InvertedPendulum-v1)
-ifeq ($(MODEL),fc) # Solved in 19 eps
+ifeq ($(MODEL),fc)
 LAYER_SIZE=128
 LR=0.01
 OPT=Adam
 endif
-ifeq ($(MODEL),lstm) # Solved in 10 eps
-LAYER_SIZE=32
-LR=0.0033
+ifeq ($(MODEL),lstm)
+LAYER_SIZE=16
+LR=0.003
 OPT=SGD
 endif
 endif
@@ -42,12 +42,25 @@ endif
 ifeq ($(ENV),InvertedPendulumBulletEnv-v0)
 ifeq ($(MODEL),fc)
 LAYER_SIZE=128
-LR=0.0001
+LR=0.01
 OPT=Adam
 endif
 ifeq ($(MODEL),lstm)
 LAYER_SIZE=16
 LR=0.001
+OPT=SGD
+endif
+endif
+
+ifeq ($(ENV),Ant-v1)
+ifeq ($(MODEL),fc)
+LAYER_SIZE=64
+LR=0.01
+OPT=Adam
+endif
+ifeq ($(MODEL),lstm)
+LAYER_SIZE=32
+LR=0.0033
 OPT=SGD
 endif
 endif
@@ -64,7 +77,7 @@ sync:
 	python sync_bench.py --n_proc $(NUM_WORKERS) --algo $(ALGO) --env $(ENV) --n_steps $(N_STEPS) --n_test_iter 100 --opt $(OPT) --lr $(LR) --layer_size $(LAYER_SIZE) --model $(MODEL) --update_frequency 00 --max_path_length 5000
 
 dev:
-	python benchmark.py --algo $(ALGO) --env $(ENV) --n_steps $(N_STEPS) --model $(MODEL) --dropout $(DROPOUT) --n_test_iter 100 --opt $(OPT) --lr $(LR) --layer_size $(LAYER_SIZE) --update_frequency 00 --max_path_length 5000
+	python benchmark.py --algo $(ALGO) --env $(ENV) --n_steps $(N_STEPS) --model $(MODEL) --dropout $(DROPOUT) --n_test_iter 100 --opt $(OPT) --lr $(LR) --layer_size $(LAYER_SIZE) --update_frequency 000 --max_path_length 50000
 
 test:
 	for algo in reinforce acreinforce a3c; do \
