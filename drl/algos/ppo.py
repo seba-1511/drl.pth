@@ -57,7 +57,7 @@ class PPO(Reinforce):
                 policy_loss = 0.0
                 for action, advantage, state in zip(actions_ep, advantage_ep, states_ep):
                     _, new_action = self.forward(state, *action.args, **action.kwargs)
-                    ratios = (new_action.log_prob - action.log_prob).exp().mean()
+                    ratios = (new_action.log_prob - action.log_prob.detach()).exp().mean()
                     surr1 = ratios * advantage.data[0]
                     surr2 = th.clamp(ratios, 1.0 - self.clip, 1.0 + self.clip) * advantage.data[0]
                     clipped_loss = th.min(surr1, surr2)
