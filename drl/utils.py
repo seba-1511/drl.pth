@@ -7,6 +7,7 @@ from __future__ import print_function
 
 import numpy as np
 import gym
+import pybullet_envs
 import torch as th
 
 from collections import Iterable
@@ -112,6 +113,8 @@ def get_setup(seed_offset=0):
     args = parse_args()
     args.seed += seed_offset
     env = gym.make(args.env)
+    if args.render:
+        env.render(mode='human')
     env = EnvWrapper(env)
 #    env = StateNormalizer(env)
     env.seed(args.seed)
@@ -132,8 +135,8 @@ def get_setup(seed_offset=0):
     agent = get_algo(args.algo)(policy=policy,
                                 critic=critic,
                                 update_frequency=args.update_frequency,
-#                                advantage=DiscountedAdvantage())
-                                advantage=GeneralizedAdvantageEstimation())
+                                advantage=DiscountedAdvantage())
+#                                advantage=GeneralizedAdvantageEstimation())
     opt = None
     if agent.parameters() is not None:
         if args.opt == 'SGD':

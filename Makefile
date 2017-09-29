@@ -1,30 +1,45 @@
 
 ALGO=ppo
 ALGO=reinforce
-N_STEPS=100000000
+N_STEPS=100000
 TEST_N_STEPS=100
-NUM_WORKERS=2
+NUM_WORKERS=4
 DROPOUT=0.0
 
 ENV=CartPole-v0
-#ENV=InvertedPendulum-v1
-#MODEL=fc
+ENV=InvertedPendulum-v1
+#ENV=InvertedPendulumBulletEnv-v0
+MODEL=fc
 MODEL=lstm
 
 ifeq ($(ENV),CartPole-v0)
-ifeq ($(MODEL),fc)
+ifeq ($(MODEL),fc) # Solved in 10 eps
 LAYER_SIZE=128
 OPT=Adam
 LR=0.01
+#LR=0.005
 endif
-ifeq ($(MODEL),lstm)
-LAYER_SIZE=16
-LR=0.01
+ifeq ($(MODEL),lstm) # Solved in 7 eps
+LAYER_SIZE=32
+LR=0.0073
 OPT=SGD
 endif
 endif
 
 ifeq ($(ENV),InvertedPendulum-v1)
+ifeq ($(MODEL),fc) # Solved in 19 eps
+LAYER_SIZE=128
+LR=0.01
+OPT=Adam
+endif
+ifeq ($(MODEL),lstm) # Solved in 10 eps
+LAYER_SIZE=32
+LR=0.0033
+OPT=SGD
+endif
+endif
+
+ifeq ($(ENV),InvertedPendulumBulletEnv-v0)
 ifeq ($(MODEL),fc)
 LAYER_SIZE=128
 LR=0.0001

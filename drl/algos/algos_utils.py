@@ -6,6 +6,7 @@ from __future__ import print_function
 """
 
 import torch as th
+from torch import Tensor as T
 from torch.autograd import Variable as V
 from math import log
 
@@ -37,9 +38,9 @@ class GeneralizedAdvantageEstimation(object):
         self.tau = tau
         self.normalize = normalize
 
-    def __call__(self, rewards, critics, *args, **kwargs):
+    def __call__(self, rewards, values, *args, **kwargs):
         discounted = generalized_advantage_estimations(rewards,
-                                                       critics,
+                                                       values,
                                                        self.gamma,
                                                        self.tau)
         if self.normalize:
@@ -48,25 +49,27 @@ class GeneralizedAdvantageEstimation(object):
 
 
 def discount(rewards, gamma):
+    tensor = False
+    if not isinstance(rewards, list):
+        tensor = True
+        rewards = rewards.split(1)
     R = 0.0
     discounted = []
     for r in rewards[::-1]:
         R = r + gamma * R
         discounted.insert(0, R)
-    return th.Tensor(discounted)
+    if tensor:
+        return th.cat(discounted).view(-1)
+    return T(discounted)
 
 
-def generalized_advantage_estimations(rewards, critics, gamma, tau):
-    gaes = [V(th.zeros(1)), ]
-    gae = V(th.zeros(1))
-    prev_c = V(th.zeros(1))
-    for r, c in zip(rewards, critics):
-        delta = r + gamma * prev_c - c
-        gae = gae * gamma * tau + delta
-        gaes.insert(0, gae)
-        prev_c = c
-    gaes = th.cat(gaes).view(-1)
-    return gaes
+def generalized_advantage_estimations(rewards, values, gamma, tau):
+    rewards = discount(rewards, gamma)
+    values.append(V(T([0.0])))
+    values = th.cat(values).view(-1)
+    deltas = V(rewards) + gamma * values[1:] - values[:-1]
+    advantage = discount(deltas, gamma * tau)
+    return advantage
 
 
 def normalize(tensor):
