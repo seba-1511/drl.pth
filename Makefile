@@ -1,9 +1,4 @@
 
-# TODO: 
-# Afternoon:
-# - Implement PPO
-# - Have a benchmark suit and possibly plot all envs
-
 ALGO=ppo
 #ALGO=reinforce
 N_STEPS=100000
@@ -12,7 +7,7 @@ NUM_WORKERS=2
 DROPOUT=0.0
 
 ENV=CartPole-v0
-#ENV=InvertedPendulum-v1
+ENV=InvertedPendulum-v1
 #ENV=InvertedDoublePendulum-v1
 #ENV=Ant-v1
 #ENV=InvertedPendulumBulletEnv-v0
@@ -88,7 +83,7 @@ endif
 
 .PHONY: all dev 
 
-all: dev
+all: ppo
 
 async:
 	python async_bench.py --n_proc $(NUM_WORKERS) --algo $(ALGO) --env $(ENV) --n_steps $(N_STEPS) --n_test_iter 100 --opt $(OPT) --lr $(LR) --layer_size $(LAYER_SIZE) --model $(MODEL) --update_frequency 00 --max_path_length 5000
@@ -97,7 +92,13 @@ sync:
 	python sync_bench.py --n_proc $(NUM_WORKERS) --algo $(ALGO) --env $(ENV) --n_steps $(N_STEPS) --n_test_iter 100 --opt $(OPT) --lr $(LR) --layer_size $(LAYER_SIZE) --model $(MODEL) --update_frequency 00 --max_path_length 5000
 
 dev:
-	python benchmark.py --algo $(ALGO) --env $(ENV) --n_steps $(N_STEPS) --model $(MODEL) --dropout $(DROPOUT) --n_test_iter 100 --opt $(OPT) --lr $(LR) --layer_size $(LAYER_SIZE) --update_frequency 000 --max_path_length 50000
+	python benchmark.py --algo $(ALGO) --env $(ENV) --n_steps $(N_STEPS) --model $(MODEL) --dropout $(DROPOUT) --n_test_iter 100 --opt $(OPT) --lr $(LR) --layer_size $(LAYER_SIZE) --update_frequency 2048 --max_path_length 50000
+
+pg:
+	python benchmark.py --algo reinforce --env $(ENV) --n_steps $(N_STEPS) --model $(MODEL) --dropout $(DROPOUT) --n_test_iter 100 --opt $(OPT) --lr $(LR) --layer_size $(LAYER_SIZE) --update_frequency 000 --max_path_length 50000
+
+ppo:
+	python benchmark.py --algo ppo --env InvertedPendulum-v1 --n_steps $(N_STEPS) --model baseline --dropout $(DROPOUT) --n_test_iter 100 --opt Adam --lr 3e-4 --layer_size $(LAYER_SIZE) --update_frequency 2048 --max_path_length 50000
 
 
 bench:

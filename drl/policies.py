@@ -87,12 +87,16 @@ class DiagonalGaussianPolicy(Policy):
     def forward(self, x, *args, **kwargs):
         action = super(DiagonalGaussianPolicy, self).forward(x, *args, **kwargs)
         size = action.raw.size()
-        value = action.raw + self.logstd.exp().expand_as(action.raw) * V(th.randn(size))
+        std = self.logstd.exp().expand_as(action.raw)
+        value = action.raw + std * V(th.randn(size))
         value = value.detach()
-        action.value = value.data.tolist()
+        action.value = value
         action.prob = self._normal(value, action.raw, self.logstd)
         action.log_prob = action.prob.log1p() 
         action.entropy = self.logstd + self.halflog2pie
+        action.logstd = self.logstd.clone()
+        action.compute_log_prob = lambda a: -0.5 * ((a - action.raw) / std).pow(2) - 0.5 * log(2*pi) - action.logstd
+        action.log_prob = action.compute_log_prob(value)
         return action
 
 

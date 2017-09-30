@@ -9,13 +9,15 @@ from .reinforce import Reinforce
 
 class PPO(Reinforce):
 
-    def __init__(self, num_epochs=4, batch_size=64, clip=0.2, *args, **kwargs):
+    def __init__(self, num_epochs=10, batch_size=64, clip=0.2, *args, **kwargs):
         self.num_epochs = num_epochs
         self.batch_size = batch_size
         self.clip = clip
+        self.steps = 0
         super(PPO, self).__init__(*args, **kwargs)
 
     def _reset(self):
+        self.stats['Num. Steps'] += self.steps
         super(PPO, self)._reset()
         self.epoch_optimized = 0
         self.states = [[], ]
@@ -35,6 +37,7 @@ class PPO(Reinforce):
         self.states.append([])
 
     def _process(self):
+        self.stats['Num. Trajectories'] += len(self.rewards)
         # flatten everything and properly compute the advantages
         actions = []
         states = []
@@ -69,76 +72,89 @@ class PPO(Reinforce):
             self._process()
             self.processed = True
         indices = (th.rand(self.batch_size) * len(self.rewards)).int()
+        # TODO: Cleanup
         log_actions = []
         rewards = []
         critics = []
         entropies = []
         states = []
         advantages = []
+        actions = []
         for i in indices:
+            actions.append(self.actions[i].value)
             log_actions.append(self.actions[i].log_prob)
+#            log_actions.append(self.actions[i].compute_log_prob(self.actions[i].value).sum(1, keepdim=True))
             rewards.append(self.rewards[i])
             critics.append(self.critics[i])
             entropies.append(self.entropies[i])
             states.append(self.states[i])
             advantages.append(self.advantages[i])
+        actions = th.cat(actions, 0)
         log_actions = th.cat(log_actions, 0)
         rewards = th.cat(rewards, 0).view(-1)
         critics = th.cat(critics, 0).view(-1)
         entropies = th.cat(entropies, 0).view(-1)
         states = th.cat(states, 0)
         advantages = th.cat(advantages, 0).view(-1)
-        return log_actions, rewards, critics, entropies, states, advantages
+        return actions, log_actions, rewards, critics, entropies, states, advantages
 
     def get_update(self):
-        num_traj = loss_stats = critics_stats = entropy_stats = policy_stats = 0.0
-        for epoch in range(self.num_epochs):
-            log_actions, rewards, critics, entropies, states, advantages = self._sample()
-            # Compute auxiliary losses
-            critic_loss = (rewards - critics).pow(2).mean()
-            critic_loss = self.critic_weight * critic_loss
-            entropy_loss = entropies.mean()
-            entropy_loss = - self.entropy_weight * entropy_loss
-            # Compute policy loss
-            advantages = advantages.detach()
-            new_actions = self.policy(states)
-            ratios = (new_actions.log_prob - log_actions.detach()).exp()
-            surr1 = ratios * advantages
-            surr2 = th.clamp(ratios, 1.0 - self.clip, 1.0 + self.clip) * advantages
-            clipped_loss = th.min(surr1.mean(), surr2.mean())
-            policy_loss = - clipped_loss
-            # Proceed to optimization
-            loss = policy_loss + critic_loss + entropy_loss
-            if epoch == self.num_epochs -1:
-                loss.backward(retain_graph=False)
-            else:
-                loss.backward(retain_graph=True)
-            th.nn.utils.clip_grad_norm(self.parameters(), self.grad_clip)
-            # Update running statistics
-            loss_stats += loss.data[0]
-            critics_stats += critic_loss.data[0]
-            entropy_stats += entropy_loss.data[0]
-            policy_stats += policy_loss.data[0]
-            num_traj += 1.0
+        actions, log_actions, rewards, critics, entropies, states, advantages = self._sample()
+        # Compute auxiliary losses
+        critic_loss = (rewards - critics).pow(2).mean()
+        critic_loss = self.critic_weight * critic_loss
+        entropy_loss = entropies.mean()
+        entropy_loss = - self.entropy_weight * entropy_loss
+        # Compute policy loss
+        advantages = advantages.detach().view(-1, 1)
+        new_actions = self.policy(states)
+        ratios = (new_actions.compute_log_prob(actions) - log_actions.detach()).exp()
+        surr1 = advantages.mul(ratios)
+        surr2 = advantages.mul(th.clamp(ratios, 1.0 - self.clip, 1.0 + self.clip))
+        clipped_loss = th.min(surr1, surr2).mean()
+        policy_loss = - clipped_loss
+#        import pdb; pdb.set_trace()
+        # Proceed to optimization
+        loss = policy_loss + critic_loss + entropy_loss
+        if self.epoch_optimized == self.num_epochs:
+            loss.backward(retain_graph=False)
+        else:
+            loss.backward(retain_graph=True)
+        th.nn.utils.clip_grad_norm(self.parameters(), self.grad_clip)
 
+        # TODO: Fix the stats !
         # Store statistics
         self.stats['Num. Updates'] += 1.0
-        self.stats['Num. Trajectories'] += num_traj
-        self.stats['Critic Loss'] += critics_stats / num_traj
-        self.stats['Entropy Loss'] += entropy_stats / num_traj
-        self.stats['Policy Loss'] += policy_stats / num_traj
-        self.stats['Total Loss'] += loss_stats / num_traj
-        self.stats['Num. Steps'] += self.steps
-        self.epoch_optimized += 1
-        self._reset()
+        self.stats['Critic Loss'] += critic_loss.data[0]
+        self.stats['Entropy Loss'] += entropy_loss.data[0]
+        self.stats['Policy Loss'] += policy_loss.data[0]
+        self.stats['Total Loss'] += loss.data[0]
         return [p.grad.clone() for p in self.parameters()]
 
 
     def updatable(self):
+        # self.update_frequency = 0 -> optimize after each full trajectory
         if self.update_frequency > 0:
             if self.steps >= self.update_frequency:
+                if self.epoch_optimized >= self.num_epochs:
+                    self._reset()
+                    return False
+                self.epoch_optimized += 1
                 return True
         else:
             if len(self.actions) > 1:
+                if self.epoch_optimized >= self.num_epochs:
+                    self._reset()
+                    return False
+                self.epoch_optimized += 1
                 return True
         return False
+
+#    def updatable(self):
+#        if self.update_frequency > 0:
+#            if self.steps >= self.update_frequency:
+#                return True
+#        else:
+#            if len(self.actions) > 1:
+#                return True
+#        return False

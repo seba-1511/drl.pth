@@ -17,7 +17,7 @@ from torch import optim
 from gym.spaces import Discrete
 
 from .algos import Reinforce, Random, PPO
-from .models import FC2, LSTM2
+from .models import FC2, LSTM2, Baseline
 from .policies import ContinuousPolicy, DiscretePolicy, DiagonalGaussianPolicy, Policy
 from .env_converter import EnvWrapper, StateNormalizer, ActionNormalizer, numel
 from .algos.algos_utils import DiscountedAdvantage, GeneralizedAdvantageEstimation
@@ -51,7 +51,7 @@ def parse_args():
     parser.add_argument('--n_test_iter', dest='n_test_iter', type=int,
                         default=100, help='Number of episodes to test on.')
     parser.add_argument('--seed', dest='seed', type=int,
-                        default=543, help='Random generator seed')
+                        default=1234, help='Random generator seed')
     parser.add_argument('--update_frequency', dest='update_frequency', type=int,
                         default=1500, help='Number of steps before updating parameters.')
     parser.add_argument('--max_path_length', dest='max_path_length', type=int,
@@ -92,6 +92,7 @@ def get_model(name):
     model = {
         'fc': FC2,
         'lstm': LSTM2,
+        'baseline': Baseline
     }
     return model[name]
 
@@ -112,6 +113,7 @@ def is_discrete(env):
 
 def get_setup(seed_offset=0):
     args = parse_args()
+    args.print_interval = max(args.print_interval, args.update_frequency)
     args.seed += seed_offset
     env = gym.make(args.env)
     if args.render:
@@ -129,19 +131,21 @@ def get_setup(seed_offset=0):
     if discrete:
         policy = DiscretePolicy(model, returns_args=recurrent)
     else:
-        env = StateNormalizer(env, env.state_size)
+        env = StateNormalizer(env, env.state_size, clip=5.0)
         policy = ContinuousPolicy(model, action_size=env.action_size,
                                   returns_args=recurrent)
     policy.train()
     agent = get_algo(args.algo)(policy=policy,
                                 critic=critic,
                                 update_frequency=args.update_frequency,
-#                                advantage=DiscountedAdvantage())
-                                advantage=GeneralizedAdvantageEstimation())
+                                advantage=DiscountedAdvantage())
+#                                advantage=GeneralizedAdvantageEstimation())
     opt = None
     if agent.parameters() is not None:
         if args.opt == 'SGD':
             opt = optim.SGD(agent.parameters(), lr=args.lr, momentum=args.momentum)
+        elif args.opt == 'Adam':
+            opt = optim.Adam(agent.parameters(), lr=args.lr, eps=1e-5)
         else:
             opt = get_opt(args.opt)(agent.parameters(), lr=args.lr)
     return args, env, agent, opt

@@ -10,7 +10,7 @@ from torch import Tensor as T
 from torch.autograd import Variable as V
 from math import log
 
-EPSILON = 1e-6
+EPSILON = 1e-5
 PI = 3.141592654
 LOG2PI = log(2.0 * PI)
 
@@ -23,9 +23,10 @@ class DiscountedAdvantage(object):
 
     def __call__(self, rewards, critics, *args, **kwargs):
         discounted = discount(rewards, self.gamma)
-        if self.normalize:
-            discounted = normalize(discounted)
+        discounted = normalize(discounted)
         advantage = discounted - critics
+        if self.normalize:
+            advantage = normalize(advantage)
         return discounted, advantage
 
 

@@ -82,7 +82,7 @@ class Reinforce(BaseAgent):
     def forward(self, state, *args, **kwargs):
         state = self._variable(state)
         action = self.policy(state, *args, **kwargs)
-        return action.value[0], action
+        return action.value.data.tolist()[0], action
 
     def learn(self, state, action, reward, next_state, done, info=None):
         self.rewards[-1].append(reward)

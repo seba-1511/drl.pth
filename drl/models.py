@@ -133,6 +133,53 @@ class LSTMContinuousFeatures(nn.Module):
         hx, cx = self.lstm(x, hiddens)
         return hx, (hx, cx) 
 
+class BaselineActor(nn.Module):
+
+    def __init__(self, state_size, action_size):
+        super(BaselineActor, self).__init__()
+        self.fc1 = nn.Linear(state_size, 64, bias=True)
+        self.fc2 = nn.Linear(64, 64, bias=True)
+        self.mean = nn.Linear(64, action_size, bias=True)
+
+        # Init
+        for p in [self.fc1, self.fc2, self.mean]:
+            p.weight.data.normal_(0, 1)
+            p.weight.data *= 1.0 / th.sqrt(p.weight.data.pow(2).sum(1, keepdim=True))
+            p.bias.data.fill_(0.0)
+
+        self.mean.weight.data.mul_(0.01)
+
+    def forward(self, x, *args, **kwargs):
+        x = F.tanh(self.fc1(x)) 
+        x = F.tanh(self.fc2(x))
+        return self.mean(x)
+
+
+
+class BaselineCritic(nn.Module):
+
+    def __init__(self, state_size):
+        super(BaselineCritic, self).__init__()
+        self.fc1 = nn.Linear(state_size, 64, bias=True)
+        self.fc2 = nn.Linear(64, 64, bias=True)
+        self.value = nn.Linear(64, 1, bias=True)
+
+        # Init
+        for p in [self.fc1, self.fc2, self.value]:
+            p.weight.data.normal_(0, 1)
+            p.weight.data *= 1.0 / th.sqrt(p.weight.data.pow(2).sum(1, keepdim=True))
+            p.bias.data.fill_(0.0)
+
+    def forward(self, x, *args, **kwargs):
+        x = F.tanh(self.fc1(x)) 
+        x = F.tanh(self.fc2(x))
+        return self.value(x)
+
+
+def Baseline(state_size, action_size, layer_sizes=[128, 128], dropout=0.0, discrete=True):
+    actor = BaselineActor(state_size, action_size)
+    critic = BaselineCritic(state_size)
+    return actor, critic
 
 def FC2(state_size, action_size, layer_sizes=[128, 128], dropout=0.0, discrete=True):
     if discrete:
@@ -147,8 +194,6 @@ def FC2(state_size, action_size, layer_sizes=[128, 128], dropout=0.0, discrete=T
                                 action_size=action_size)
     critic = Critic(feature_extractor=features,
                     state_size=layer_sizes[-1])
-#    critic = Critic(feature_extractor=ContinuousFeatures(state_size, layer_sizes, dropout),
-#                    state_size=layer_sizes[-1])
     return (actor, critic)
 
 
@@ -165,8 +210,6 @@ def LSTM2(state_size, action_size, layer_sizes=[128, 128], dropout=0.0, discrete
                                 features_size=layer_sizes[-1],
                                 action_size=action_size,
                                 recurrent=True)
-    critic = Critic(feature_extractor=ContinuousFeatures(state_size, layer_sizes, dropout),
-                    state_size=layer_sizes[-1])
-    #critic = Critic(feature_extractor=features,
-    #                state_size=layer_sizes[-1], recurrent=True)
+    critic = Critic(feature_extractor=features,
+                    state_size=layer_sizes[-1], recurrent=True)
     return (actor, critic)
