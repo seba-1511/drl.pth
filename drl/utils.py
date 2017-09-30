@@ -138,8 +138,8 @@ def get_setup(seed_offset=0):
     agent = get_algo(args.algo)(policy=policy,
                                 critic=critic,
                                 update_frequency=args.update_frequency,
-                                advantage=DiscountedAdvantage())
-#                                advantage=GeneralizedAdvantageEstimation())
+#                                advantage=DiscountedAdvantage())
+                                advantage=GeneralizedAdvantageEstimation())
     opt = None
     if agent.parameters() is not None:
         if args.opt == 'SGD':
