@@ -82,12 +82,13 @@ class Reinforce(BaseAgent):
     def forward(self, state, *args, **kwargs):
         state = self._variable(state)
         action = self.policy(state, *args, **kwargs)
-        return action.value.data.tolist()[0], action
+        return action.value.data[:, 0].tolist()[0], action
 
     def learn(self, state, action, reward, next_state, done, info=None):
         self.rewards[-1].append(reward)
-        self.actions[-1].append(info.log_prob)
-        self.critics[-1].append(self.critic(self._variable(state), *info.args, **info.kwargs))
+        self.actions[-1].append(info)
+        self.critics[-1].append(self.critic(self._variable(state),
+                                            *info.args, **info.kwargs))
         self.entropies[-1].append(info.entropy)
         self.steps += 1
 
@@ -112,8 +113,8 @@ class Reinforce(BaseAgent):
                 entropy_loss = - self.entropy_weight * entropy_loss
                 # Compute policy gradients
                 policy_loss = 0.0
-                for action_log, advantage in zip(actions_ep, advantage_ep):
-                    policy_loss = policy_loss - action_log.mean() * advantage.data[0]
+                for action, advantage in zip(actions_ep, advantage_ep):
+                    policy_loss = policy_loss - action.log_prob.mean() * advantage.data[0]
                 loss = policy_loss + critic_loss + entropy_loss
                 loss.backward()
                 th.nn.utils.clip_grad_norm(self.parameters(), self.grad_clip)

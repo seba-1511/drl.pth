@@ -51,7 +51,7 @@ def parse_args():
     parser.add_argument('--n_test_iter', dest='n_test_iter', type=int,
                         default=100, help='Number of episodes to test on.')
     parser.add_argument('--seed', dest='seed', type=int,
-                        default=1234, help='Random generator seed')
+                        default=543, help='Random generator seed')
     parser.add_argument('--update_frequency', dest='update_frequency', type=int,
                         default=1500, help='Number of steps before updating parameters.')
     parser.add_argument('--max_path_length', dest='max_path_length', type=int,
@@ -146,6 +146,7 @@ def get_setup(seed_offset=0):
             opt = optim.SGD(agent.parameters(), lr=args.lr, momentum=args.momentum)
         elif args.opt == 'Adam':
             opt = optim.Adam(agent.parameters(), lr=args.lr, eps=1e-5)
+            opt = optim.Adam(agent.parameters(), lr=args.lr)
         else:
             opt = get_opt(args.opt)(agent.parameters(), lr=args.lr)
     return args, env, agent, opt

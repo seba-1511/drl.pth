@@ -24,7 +24,7 @@ class PPO(Reinforce):
         self.processed = False
 
     def learn(self, state, action, reward, next_state, done, info=None):
-        assert(not self.processed, 'Can\'t add more experience while optimizing !')
+        assert not self.processed, 'Can\'t add more experience while optimizing !'
         self.rewards[-1].append(reward)
         self.actions[-1].append(info)
         self.critics[-1].append(self.critic(self._variable(state), *info.args, **info.kwargs))
