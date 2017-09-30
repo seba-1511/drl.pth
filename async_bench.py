@@ -13,6 +13,7 @@ from drl.utils import get_setup
 
 
 def async_update(agent, opt, rank, outputs):
+    th.set_num_threads(1)
     # Proceed with training but keeping the current agent
     args, env, _, _ = get_setup(seed_offset=rank)
     is_root = (rank == 0)

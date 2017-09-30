@@ -70,7 +70,7 @@ class DiagonalGaussianPolicy(Policy):
 
     """ Similar to the ones in Schulman. """
 
-    def __init__(self, model, action_size=1, init_value=-0.0, *args, **kwargs):
+    def __init__(self, model, action_size=1, init_value=0.0, *args, **kwargs):
         super(DiagonalGaussianPolicy, self).__init__(model, *args, **kwargs)
         self.init_value = init_value
         self.logstd = th.randn((1, action_size)) + self.init_value

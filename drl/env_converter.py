@@ -63,6 +63,8 @@ class EnvWrapper(object):
             self.action_size = numel(env.action_space.sample())
 
     def step(self, action):
+        if self.is_discrete and isinstance(action, list):
+            action = action[0]
         return self.env.step(action)
 
     def __getattr__(self, name):

@@ -122,7 +122,7 @@ def get_setup(seed_offset=0):
     env.seed(args.seed)
     np.random.seed(args.seed)
     # Don't use the following line in async and version 0.2.0
-    th.manual_seed(args.seed)
+#    th.manual_seed(args.seed)
     discrete = is_discrete(env)
     model, critic = get_model(args.model)(env.state_size,
                                           env.action_size, layer_sizes=(args.layer_sizes, args.layer_sizes),
@@ -138,8 +138,8 @@ def get_setup(seed_offset=0):
     agent = get_algo(args.algo)(policy=policy,
                                 critic=critic,
                                 update_frequency=args.update_frequency,
-#                                advantage=DiscountedAdvantage())
-                                advantage=GeneralizedAdvantageEstimation())
+                                advantage=DiscountedAdvantage())
+#                                advantage=GeneralizedAdvantageEstimation())
     opt = None
     if agent.parameters() is not None:
         if args.opt == 'SGD':

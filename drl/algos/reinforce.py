@@ -18,8 +18,8 @@ from ..models import ConstantCritic
 
 class Reinforce(BaseAgent):
 
-    def __init__(self, policy=None, critic=None, advantage=None, update_frequency=1000, entropy_weight=0.01, critic_weight=0.5,
-                 grad_clip=50.0):
+    def __init__(self, policy=None, critic=None, advantage=None, update_frequency=1000, entropy_weight=0.001, critic_weight=0.5,
+                 grad_clip=0.5):
         super(Reinforce, self).__init__()
         self.policy = policy
         if critic is None:
@@ -82,7 +82,7 @@ class Reinforce(BaseAgent):
     def forward(self, state, *args, **kwargs):
         state = self._variable(state)
         action = self.policy(state, *args, **kwargs)
-        return action.value.data[:, 0].tolist()[0], action
+        return action.value.data.tolist()[0], action
 
     def learn(self, state, action, reward, next_state, done, info=None):
         self.rewards[-1].append(reward)
@@ -117,7 +117,8 @@ class Reinforce(BaseAgent):
                     policy_loss = policy_loss - action.log_prob.mean() * advantage.data[0]
                 loss = policy_loss + critic_loss + entropy_loss
                 loss.backward()
-                th.nn.utils.clip_grad_norm(self.parameters(), self.grad_clip)
+                if self.grad_clip > 0.0:
+                    th.nn.utils.clip_grad_norm(self.parameters(), self.grad_clip)
                 # Update running statistics
                 loss_stats += loss.data[0]
                 critics_stats += critic_loss.data[0]

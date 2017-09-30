@@ -25,12 +25,8 @@ class PPO(Reinforce):
 
     def learn(self, state, action, reward, next_state, done, info=None):
         assert not self.processed, 'Can\'t add more experience while optimizing !'
-        self.rewards[-1].append(reward)
-        self.actions[-1].append(info)
-        self.critics[-1].append(self.critic(self._variable(state), *info.args, **info.kwargs))
-        self.entropies[-1].append(info.entropy)
+        super(PPO, self).learn(state, action, reward, next_state, done, info)
         self.states[-1].append(state)
-        self.steps += 1
 
     def new_episode(self, terminated=False):
         super(PPO, self).new_episode(terminated)
@@ -83,7 +79,6 @@ class PPO(Reinforce):
         for i in indices:
             actions.append(self.actions[i].value)
             log_actions.append(self.actions[i].log_prob)
-#            log_actions.append(self.actions[i].compute_log_prob(self.actions[i].value).sum(1, keepdim=True))
             rewards.append(self.rewards[i])
             critics.append(self.critics[i])
             entropies.append(self.entropies[i])
@@ -113,16 +108,15 @@ class PPO(Reinforce):
         surr2 = advantages.mul(th.clamp(ratios, 1.0 - self.clip, 1.0 + self.clip))
         clipped_loss = th.min(surr1, surr2).mean()
         policy_loss = - clipped_loss
-#        import pdb; pdb.set_trace()
         # Proceed to optimization
         loss = policy_loss + critic_loss + entropy_loss
         if self.epoch_optimized == self.num_epochs:
             loss.backward(retain_graph=False)
         else:
             loss.backward(retain_graph=True)
-        th.nn.utils.clip_grad_norm(self.parameters(), self.grad_clip)
+        if self.grad_clip > 0.0:
+            th.nn.utils.clip_grad_norm(self.parameters(), self.grad_clip)
 
-        # TODO: Fix the stats !
         # Store statistics
         self.stats['Num. Updates'] += 1.0
         self.stats['Critic Loss'] += critic_loss.data[0]
@@ -130,7 +124,6 @@ class PPO(Reinforce):
         self.stats['Policy Loss'] += policy_loss.data[0]
         self.stats['Total Loss'] += loss.data[0]
         return [p.grad.clone() for p in self.parameters()]
-
 
     def updatable(self):
         # self.update_frequency = 0 -> optimize after each full trajectory
@@ -149,12 +142,3 @@ class PPO(Reinforce):
                 self.epoch_optimized += 1
                 return True
         return False
-
-#    def updatable(self):
-#        if self.update_frequency > 0:
-#            if self.steps >= self.update_frequency:
-#                return True
-#        else:
-#            if len(self.actions) > 1:
-#                return True
-#        return False
