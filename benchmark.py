@@ -53,6 +53,7 @@ def train(args, env, agent, opt, update, verbose=True):
         hidden_state = sample_lstm_state(args)
         for path in range(args.max_path_length):
             while agent.updatable():
+                env._update()
                 update(args, env, agent, opt)
                 num_updates += 1
 

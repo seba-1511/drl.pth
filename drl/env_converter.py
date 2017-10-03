@@ -126,15 +126,18 @@ class StateNormalizer(EnvConverter):
         self.mean = np.zeros(shape, dtype=np.double)
         self.std = np.ones(shape, dtype=np.double)
 
+    def _update(self):
+        self.mean = self.sum / self.count
+        self.std = self.sum_sqr / self.count - self.mean**2
+        self.std = np.clip(self.std, 1e-2, 1e9)**0.5
+
     def normalize(self, new_state):
         # Update
         self.count += 1
         self.sum += new_state
         self.sum_sqr += new_state**2
-        if self.count % self.update_freq == 0:
-            self.mean = self.sum / self.count
-            self.std = self.sum_sqr / self.count - self.mean**2
-            self.std = np.clip(self.std, 1e-2, 1e9)**0.5
+        if self.count % self.update_freq == 0 and False:
+            self._update()
         # Normalize
         new_state = new_state - self.mean
         new_state = new_state / self.std

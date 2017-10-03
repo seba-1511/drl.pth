@@ -138,7 +138,7 @@ def get_setup(seed_offset=0):
     agent = get_algo(args.algo)(policy=policy,
                                 critic=critic,
                                 update_frequency=args.update_frequency,
-                                critic_weight=0.5,
+                                critic_weight=1.0,
                                 entropy_weight=0.0,
                                 grad_clip=0.0,
 #                                advantage=DiscountedAdvantage())

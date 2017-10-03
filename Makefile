@@ -117,7 +117,7 @@ dev:
 	python benchmark.py --algo $(ALGO) --env $(ENV) --n_steps $(N_STEPS) --model $(MODEL) --dropout $(DROPOUT) --n_test_iter 100 --opt $(OPT) --lr $(LR) --layer_size $(LAYER_SIZE) --update_frequency $(FREQ) --max_path_length 100 --record True
 
 baseline:
-	python benchmark.py --algo ppo --env Reacher-v1 --n_steps $(N_STEPS) --model baseline --dropout $(DROPOUT) --n_test_iter 100 --opt Adam --lr 3e-4 --layer_size 32 --update_frequency 2048 --max_path_length 50000
+	python benchmark.py --algo ppo --env Reacher-v1 --n_steps $(N_STEPS) --model baseline --dropout $(DROPOUT) --n_test_iter 100 --opt Adam --lr 5e-3 --layer_size 32 --update_frequency 2048 --max_path_length 50000
 
 
 bench:

@@ -76,7 +76,7 @@ class DiagonalGaussianPolicy(Policy):
         self.logstd = th.zeros((1, action_size)) + self.init_value
         self.logstd = P(self.logstd)
         self.halflog2pie = V(T([2 * pi * exp(1)])) * 0.5
-        self.halflog2pi = V(T([2 * pi])) * 0.5
+        self.halflog2pi = V(T([2.0 * pi])) * 0.5
         self.pi = V(T([pi]))
 
     def _normal(self, x, mean, logstd):
@@ -93,7 +93,8 @@ class DiagonalGaussianPolicy(Policy):
         value = action.raw + std * V(th.randn(size))
         value = value.detach()
         action.value = value
-        action.logstd = self.logstd.clone()
+#        action.logstd = self.logstd.clone()
+        action.logstd = self.logstd
         action.prob = lambda: self._normal(value, action.raw, action.logstd)
         action.entropy = action.logstd + self.halflog2pie
         action.compute_log_prob = lambda a: -0.5 * ((a - action.raw) / std).pow(2) - self.halflog2pi - action.logstd

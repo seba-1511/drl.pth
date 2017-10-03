@@ -37,17 +37,18 @@ class GeneralizedAdvantageEstimation(object):
         self.tau = tau
         self.normalize = normalize
 
-    def __call__(self, rewards, values, *args, **kwargs):
-       # advantage = generalized_advantage_estimations(rewards,
-       #                                         values,
-       #                                         self.gamma,
-       #                                         self.tau)
-        advantage = gae(rewards, values, self.gamma, self.tau)
-        discounted = discount(rewards, self.gamma)
-        if self.normalize:
-            advantage = normalize(advantage)
-            discounted = normalize(discounted)
-        return discounted, advantage
+    def __call__(self, rewards, values, terminal, *args, **kwargs):
+        #advantage = generalized_advantage_estimations(rewards,
+        #                                        values,
+        #                                        self.gamma,
+        #                                        self.tau)
+        advantage = gae(rewards, values, terminal, self.gamma, self.tau)
+#        advantage = advantage - values
+#        discounted = discount(rewards, self.gamma)
+#        if self.normalize:
+#            advantage = normalize(advantage)
+#            discounted = normalize(discounted)
+        return rewards, advantage
 
 
 def discount(rewards, gamma):
@@ -64,17 +65,19 @@ def discount(rewards, gamma):
         return th.cat(discounted).view(-1)
     return T(discounted)
 
-def gae(rewards, values, gamma, tau):
+def gae(rewards, values, terminal, gamma, tau):
     gae = 0.0
-    advantages = [values[-1]]
-    for i in reversed(list(range(len(values)-1))):
-        delta = rewards[i] + gamma * values[i+1] - values[i]
-        gae = delta + gamma * tau * gae
+    advantages = []
+    values = th.cat([values, V(T([0.0077]))])
+    for i in reversed(range(len(rewards))):
+        nonterminal = 1.0 - terminal[i]
+        delta = rewards[i] + gamma * values[i+1] * nonterminal - values[i]
+        gae = delta + gamma * tau * gae * nonterminal
         advantages.insert(0, gae + values[i])
     return th.cat(advantages) 
 
 def generalized_advantage_estimations(rewards, values, gamma, tau):
-    rewards = discount(rewards, gamma)
+#    rewards = discount(rewards, gamma)
     values = th.cat([values, V(T([0.0]))])
     deltas = rewards + gamma * values[1:] - values[:-1]
     advantage = discount(deltas, gamma * tau)
