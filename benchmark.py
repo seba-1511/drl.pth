@@ -56,7 +56,6 @@ def train(args, env, agent, opt, update, verbose=True):
                 update(args, env, agent, opt)
                 num_updates += 1
 
-            train_steps += 1
             if train_steps % args.print_interval == 0:
                 denom = max(1, len(iter_reward))
                 train_rewards.append(sum(iter_reward) / denom)
@@ -72,6 +71,7 @@ def train(args, env, agent, opt, update, verbose=True):
                 env.render()
             next_state, reward, done, _ = env.step(action)
             agent.learn(state, action, reward, next_state, done, info=action_info)
+            train_steps += 1
             episode_reward += reward
 
             if done or agent.done():

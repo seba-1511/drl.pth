@@ -145,7 +145,7 @@ class BaselineActor(nn.Module):
         for p in [self.fc1, self.fc2, self.mean]:
             p.weight.data.normal_(0, 1)
             p.weight.data *= 1.0 / th.sqrt(p.weight.data.pow(2).sum(1, keepdim=True))
-            p.bias.data.fill_(0.0)
+            p.bias.data.mul_(0.0)
 
         self.mean.weight.data.mul_(0.01)
 

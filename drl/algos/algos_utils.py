@@ -38,10 +38,11 @@ class GeneralizedAdvantageEstimation(object):
         self.normalize = normalize
 
     def __call__(self, rewards, values, *args, **kwargs):
-        advantage = generalized_advantage_estimations(rewards,
-                                                values,
-                                                self.gamma,
-                                                self.tau)
+       # advantage = generalized_advantage_estimations(rewards,
+       #                                         values,
+       #                                         self.gamma,
+       #                                         self.tau)
+        advantage = gae(rewards, values, self.gamma, self.tau)
         discounted = discount(rewards, self.gamma)
         if self.normalize:
             advantage = normalize(advantage)
@@ -63,6 +64,14 @@ def discount(rewards, gamma):
         return th.cat(discounted).view(-1)
     return T(discounted)
 
+def gae(rewards, values, gamma, tau):
+    gae = 0.0
+    advantages = [values[-1]]
+    for i in reversed(list(range(len(values)-1))):
+        delta = rewards[i] + gamma * values[i+1] - values[i]
+        gae = delta + gamma * tau * gae
+        advantages.insert(0, gae + values[i])
+    return th.cat(advantages) 
 
 def generalized_advantage_estimations(rewards, values, gamma, tau):
     rewards = discount(rewards, gamma)

@@ -51,7 +51,7 @@ def parse_args():
     parser.add_argument('--n_test_iter', dest='n_test_iter', type=int,
                         default=100, help='Number of episodes to test on.')
     parser.add_argument('--seed', dest='seed', type=int,
-                        default=543, help='Random generator seed')
+                        default=1, help='Random generator seed')
     parser.add_argument('--update_frequency', dest='update_frequency', type=int,
                         default=1500, help='Number of steps before updating parameters.')
     parser.add_argument('--max_path_length', dest='max_path_length', type=int,
@@ -122,7 +122,7 @@ def get_setup(seed_offset=0):
     env.seed(args.seed)
     np.random.seed(args.seed)
     # Don't use the following line in async and version 0.2.0
-#    th.manual_seed(args.seed)
+    th.manual_seed(args.seed)
     discrete = is_discrete(env)
     model, critic = get_model(args.model)(env.state_size,
                                           env.action_size, layer_sizes=(args.layer_sizes, args.layer_sizes),
@@ -138,15 +138,17 @@ def get_setup(seed_offset=0):
     agent = get_algo(args.algo)(policy=policy,
                                 critic=critic,
                                 update_frequency=args.update_frequency,
-                                advantage=DiscountedAdvantage())
-#                                advantage=GeneralizedAdvantageEstimation())
+                                critic_weight=0.5,
+                                entropy_weight=0.0,
+                                grad_clip=0.0,
+#                                advantage=DiscountedAdvantage())
+                                advantage=GeneralizedAdvantageEstimation(tau=0.95, gamma=0.99))
     opt = None
     if agent.parameters() is not None:
         if args.opt == 'SGD':
             opt = optim.SGD(agent.parameters(), lr=args.lr, momentum=args.momentum)
         elif args.opt == 'Adam':
             opt = optim.Adam(agent.parameters(), lr=args.lr, eps=1e-5)
-            opt = optim.Adam(agent.parameters(), lr=args.lr)
         else:
             opt = get_opt(args.opt)(agent.parameters(), lr=args.lr)
     return args, env, agent, opt
