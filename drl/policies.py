@@ -73,7 +73,7 @@ class DiagonalGaussianPolicy(Policy):
     def __init__(self, model, action_size=1, init_value=0.0, *args, **kwargs):
         super(DiagonalGaussianPolicy, self).__init__(model, *args, **kwargs)
         self.init_value = init_value
-        self.logstd = th.randn((1, action_size)) + self.init_value
+        self.logstd = th.zeros((1, action_size)) + self.init_value
         self.logstd = P(self.logstd)
         self.halflog2pie = V(T([2 * pi * exp(1)])) * 0.5
         self.halflog2pi = V(T([2 * pi])) * 0.5
