@@ -122,7 +122,7 @@ class Reinforce(BaseAgent):
                 for action, advantage in zip(actions_ep, advantage_ep):
                     policy_loss = policy_loss - action.log_prob.mean() * advantage.data[0]
                 loss = policy_loss + critic_loss + entropy_loss
-                loss.backward()
+                loss.backward(retain_graph=True)
                 if self.grad_clip > 0.0:
                     th.nn.utils.clip_grad_norm(self.parameters(), self.grad_clip)
                 # Update running statistics

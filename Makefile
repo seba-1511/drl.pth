@@ -1,6 +1,7 @@
 
 # TODO:
 # - Cleanup PPO
+# - Train A2C on Pong
 # - Add KL Penalty (PPO)
 # - Learned and not learned StateNormalizer, as part of policy
 # - Include Adaptive scaling of KL penaly (PPO)
@@ -11,15 +12,16 @@
 
 ALGO=ppo
 ALGO=reinforce
-N_STEPS=10000000
+N_STEPS=1000000
 TEST_N_STEPS=100
-NUM_WORKERS=3
+NUM_WORKERS=4
 DROPOUT=0.0
 
 ENV=CartPole-v0
 ENV=InvertedPendulum-v1
 #ENV=InvertedDoublePendulum-v1
 ENV=Ant-v1
+#ENV=AntBulletEnv-v0
 #ENV=InvertedPendulumBulletEnv-v0
 MODEL=fc
 #MODEL=lstm
@@ -83,7 +85,6 @@ ifeq ($(ENV),InvertedPendulumBulletEnv-v0)
 	OPT=SGD
     endif
 endif
-
 ifeq ($(ENV),Ant-v1)
     ifeq ($(MODEL),fc)
 	LAYER_SIZE=64
@@ -97,9 +98,22 @@ ifeq ($(ENV),Ant-v1)
     endif
 endif
 
+
+ifeq ($(ENV),AntBulletEnv-v0)
+    ifeq ($(MODEL),fc)
+	LAYER_SIZE=64
+	LR=0.001
+	OPT=Adam
+    endif
+    ifeq ($(MODEL),lstm)
+	LAYER_SIZE=32
+	LR=0.0033
+	OPT=SGD
+    endif
+endif
+
 ifeq ($(MODEL),baseline)
-    LR=3e-4
-    LR=3e-3
+    LR=0.01
     OPT=Adam
     LAYER_SIZE=32
 endif
@@ -116,7 +130,7 @@ sync:
 	python sync_bench.py --n_proc $(NUM_WORKERS) --algo $(ALGO) --env $(ENV) --n_steps $(N_STEPS) --n_test_iter 100 --opt $(OPT) --lr $(LR) --layer_size $(LAYER_SIZE) --model $(MODEL) --update_frequency $(FREQ) --max_path_length 5000
 
 dev:
-	python benchmark.py --algo $(ALGO) --env Reacher-v1 --n_steps $(N_STEPS) --model $(MODEL) --dropout $(DROPOUT) --n_test_iter 100 --opt $(OPT) --lr $(LR) --layer_size $(LAYER_SIZE) --update_frequency $(FREQ) --max_path_length 100 --record True
+	python benchmark.py --algo $(ALGO) --env $(ENV) --n_steps $(N_STEPS) --model $(MODEL) --dropout $(DROPOUT) --n_test_iter 100 --opt $(OPT) --lr $(LR) --layer_size $(LAYER_SIZE) --update_frequency $(FREQ) --max_path_length 100 --record True
 
 baseline:
 	python benchmark.py --algo ppo --env Reacher-v1 --n_steps $(N_STEPS) --model baseline --dropout $(DROPOUT) --n_test_iter 100 --opt Adam --lr 3e-3 --layer_size 32 --update_frequency 2048 --max_path_length 5000
