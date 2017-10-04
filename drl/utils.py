@@ -139,7 +139,7 @@ def get_setup(seed_offset=0):
                                 critic=critic,
                                 update_frequency=args.update_frequency,
                                 critic_weight=1.0,
-                                entropy_weight=0.0,
+                                entropy_weight=0.001,
                                 grad_clip=0.0,
 #                                advantage=DiscountedAdvantage())
                                 advantage=GeneralizedAdvantageEstimation(tau=0.95, gamma=0.99))

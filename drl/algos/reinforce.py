@@ -11,7 +11,7 @@ from math import pi, exp
 from itertools import chain
 
 from .base import BaseAgent
-from .algos_utils import DiscountedAdvantage, normalize, EPSILON
+from .algos_utils import DiscountedAdvantage
 
 from ..models import ConstantCritic
 
@@ -67,6 +67,7 @@ class Reinforce(BaseAgent):
         self.entropies = [[], ]
         self.actions = [[], ]
         self.critics = [[], ]
+        self.terminals = [[], ]
 
     def parameters(self):
         parameters = chain(self.policy.parameters(),
@@ -90,6 +91,7 @@ class Reinforce(BaseAgent):
         self.critics[-1].append(self.critic(self._variable(state),
                                             *info.args, **info.kwargs))
         self.entropies[-1].append(info.entropy)
+        self.terminals[-1].append(0)
         self.steps += 1
 
     def new_episode(self, terminated=False):
@@ -97,15 +99,19 @@ class Reinforce(BaseAgent):
         self.actions.append([])
         self.critics.append([])
         self.entropies.append([])
+        self.terminals[-1][-1] = int(terminated)
+        self.terminals.append([])
 
     def get_update(self):
         num_traj = loss_stats = critics_stats = entropy_stats = policy_stats = 0.0
-        for actions_ep, rewards_ep, critics_ep, entropy_ep in zip(self.actions, self.rewards, self.critics, self.entropies):
+        all_rewards, all_advantages = self.advantage(self.rewards, self.critics, self.terminals)
+#        for actions_ep, rewards_ep, critics_ep, entropy_ep, terminals_ep in zip(self.actions, self.rewards, self.critics, self.entropies, self.terminals):
+        for actions_ep, rewards_ep, advantage_ep, critics_ep, entropy_ep, terminals_ep in zip(self.actions, all_rewards, all_advantages, self.critics, self.entropies, self.terminals):
             if len(actions_ep) > 0:
                 # Compute advantages
-                rewards_ep = V(T(rewards_ep))
+                #rewards_ep = V(T(rewards_ep))
                 critics_ep = th.cat(critics_ep, 0).view(-1)
-                rewards_ep, advantage_ep = self.advantage(rewards_ep, critics_ep)
+                #rewards_ep, advantage_ep = self.advantage(rewards_ep, critics_ep, terminals_ep)
                 # Compute losses
                 critic_loss = (rewards_ep - critics_ep).pow(2).mean()
                 entropy_loss = th.cat(entropy_ep).mean()

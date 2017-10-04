@@ -1,7 +1,9 @@
 
 # TODO:
 # - Cleanup PPO
-# - Fix PPO (learning is not as efficient as A2C for now. Suspect: GAE)
+# - Add KL Penalty (PPO)
+# - Learned and not learned StateNormalizer, as part of policy
+# - Include Adaptive scaling of KL penaly (PPO)
 # - Fix PPO with LSTMs
 # - PPO KL Penalty
 # - DropoutPolicy
@@ -26,7 +28,7 @@ MODEL=fc
 ifeq ($(ALGO),ppo)
     FREQ=2048
 else
-    FREQ=000
+    FREQ=005
 endif
 
 ifeq ($(ENV),CartPole-v0)
@@ -108,19 +110,19 @@ endif
 all: baseline
 
 async:
-	python async_bench.py --n_proc $(NUM_WORKERS) --algo $(ALGO) --env $(ENV) --n_steps $(N_STEPS) --n_test_iter 100 --opt $(OPT) --lr $(LR) --layer_size $(LAYER_SIZE) --model $(MODEL) --update_frequency $(FREQ) --max_path_length 50000
+	python async_bench.py --n_proc $(NUM_WORKERS) --algo $(ALGO) --env $(ENV) --n_steps $(N_STEPS) --n_test_iter 100 --opt $(OPT) --lr $(LR) --layer_size $(LAYER_SIZE) --model $(MODEL) --update_frequency $(FREQ) --max_path_length 5000
 
 sync:
-	python sync_bench.py --n_proc $(NUM_WORKERS) --algo $(ALGO) --env $(ENV) --n_steps $(N_STEPS) --n_test_iter 100 --opt $(OPT) --lr $(LR) --layer_size $(LAYER_SIZE) --model $(MODEL) --update_frequency $(FREQ) --max_path_length 50000
+	python sync_bench.py --n_proc $(NUM_WORKERS) --algo $(ALGO) --env $(ENV) --n_steps $(N_STEPS) --n_test_iter 100 --opt $(OPT) --lr $(LR) --layer_size $(LAYER_SIZE) --model $(MODEL) --update_frequency $(FREQ) --max_path_length 5000
 
 dev:
-	python benchmark.py --algo $(ALGO) --env $(ENV) --n_steps $(N_STEPS) --model $(MODEL) --dropout $(DROPOUT) --n_test_iter 100 --opt $(OPT) --lr $(LR) --layer_size $(LAYER_SIZE) --update_frequency $(FREQ) --max_path_length 100 --record True
+	python benchmark.py --algo $(ALGO) --env Reacher-v1 --n_steps $(N_STEPS) --model $(MODEL) --dropout $(DROPOUT) --n_test_iter 100 --opt $(OPT) --lr $(LR) --layer_size $(LAYER_SIZE) --update_frequency $(FREQ) --max_path_length 100 --record True
 
 baseline:
-	python benchmark.py --algo ppo --env Reacher-v1 --n_steps $(N_STEPS) --model baseline --dropout $(DROPOUT) --n_test_iter 100 --opt Adam --lr 5e-3 --layer_size 32 --update_frequency 2048 --max_path_length 50000
+	python benchmark.py --algo ppo --env Reacher-v1 --n_steps $(N_STEPS) --model baseline --dropout $(DROPOUT) --n_test_iter 100 --opt Adam --lr 3e-3 --layer_size 32 --update_frequency 2048 --max_path_length 5000
 
 
 bench:
-	python benchmark.py --algo $(ALGO) --env Ant-v1 --n_steps 250000 --model fc --dropout $(DROPOUT) --n_test_iter 100 --opt Adam --lr 7e-4 --layer_size 64 --update_frequency 000 --max_path_length 50000
-	python benchmark.py --algo $(ALGO) --env Ant-v1 --n_steps 250000 --model lstm --dropout $(DROPOUT) --n_test_iter 100 --opt SGD --lr 0.00073 --layer_size 32 --update_frequency 000 --max_path_length 50000
-	python benchmark.py --algo $(ALGO) --env Ant-v1 --n_steps 250000 --model fc --dropout $(DROPOUT) --n_test_iter 100 --opt Adam --lr 7e-4 --layer_size 128 --update_frequency 000 --max_path_length 50000
+	python benchmark.py --algo $(ALGO) --env Ant-v1 --n_steps 250000 --model fc --dropout $(DROPOUT) --n_test_iter 100 --opt Adam --lr 7e-4 --layer_size 64 --update_frequency 000 --max_path_length 5000
+	python benchmark.py --algo $(ALGO) --env Ant-v1 --n_steps 250000 --model lstm --dropout $(DROPOUT) --n_test_iter 100 --opt SGD --lr 0.00073 --layer_size 32 --update_frequency 000 --max_path_length 5000
+	python benchmark.py --algo $(ALGO) --env Ant-v1 --n_steps 250000 --model fc --dropout $(DROPOUT) --n_test_iter 100 --opt Adam --lr 7e-4 --layer_size 128 --update_frequency 000 --max_path_length 5000

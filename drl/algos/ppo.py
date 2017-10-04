@@ -5,6 +5,7 @@ from torch import Tensor as T
 from torch.autograd import Variable as V
 
 from .reinforce import Reinforce
+from .algos_utils import normalize
 
 
 class PPO(Reinforce):
@@ -21,20 +22,16 @@ class PPO(Reinforce):
         super(PPO, self)._reset()
         self.epoch_optimized = 0
         self.states = [[], ]
-        self.terminal = [[], ]
         self.processed = False
 
     def learn(self, state, action, reward, next_state, done, info=None):
         assert not self.processed, 'Can\'t add more experience while optimizing !'
         super(PPO, self).learn(state, action, reward, next_state, done, info)
         self.states[-1].append(state)
-        self.terminal[-1].append(0)
 
     def new_episode(self, terminated=False):
         super(PPO, self).new_episode(terminated)
         self.states.append([])
-        self.terminal[-1][-1] = 1
-        self.terminal.append([])
 
     def _process(self):
         self.stats['Num. Trajectories'] += len(self.rewards)
@@ -46,31 +43,41 @@ class PPO(Reinforce):
         critics = []
         advantages = []
         terminal = []
+
+        all_rewards, all_advantages = self.advantage(self.rewards, self.critics, self.terminals)
+
         # TODO: Following can be cleaned up with a function `flatten_list(list)`
-        for actions_ep, states_ep, entropies_ep, rewards_ep, critics_ep, terminal_ep in zip(self.actions, self.states, self.entropies, self.rewards, self.critics, self.terminal):
+#        for actions_ep, states_ep, entropies_ep, rewards_ep, critics_ep, terminal_ep in zip(self.actions, self.states, self.entropies, self.rewards, self.critics, self.terminals):
+        for actions_ep, states_ep, entropies_ep, rewards_ep, advantages_ep, critics_ep, terminal_ep in zip(self.actions, self.states, self.entropies, all_rewards, all_advantages, self.critics, self.terminals):
             if len(rewards_ep) > 0:
                 actions += actions_ep
                 states += [self._variable(s) for s in states_ep] 
                 entropies += entropies_ep
                 critics += critics_ep
-                rewards += rewards_ep
+#                rewards += rewards_ep
+                rewards += rewards_ep.split(1)
                 terminal += terminal_ep
 
+                advantages += advantages_ep.split(1)
+
         # Compute advantages
-        rewards = V(T(rewards))
-        critics = th.cat(critics, 0).view(-1)
-        rewards, advantages = self.advantage(rewards, critics, terminal)
-#        rewards = rewards.split(1)
-#        advantages = advantages.split(1)
+#        rewards = V(T(rewards))
+#        critics = th.cat(critics, 0).view(-1)
+#        rewards, advantages = self.advantage(rewards, critics, terminal)
+#        self.rewards = advantages.clone()
+#        advantages = normalize(advantages)
+#        self.advantages = advantages.split(1)
         # Assign processed values
         self.actions = actions
         self.states = states
         self.entropies = entropies
-#        self.rewards = rewards
-        self.rewards = advantages.clone()
         self.critics = critics
-        advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-5)
-        self.advantages = advantages.split(1)
+
+        self.advantages = advantages
+        self.rewards = rewards
+
+
+
 
     def _sample(self):
         if not self.processed:
@@ -113,9 +120,8 @@ class PPO(Reinforce):
         # Compute policy loss
         advantages = advantages.detach().view(-1, 1)
         new_actions = self.policy(states)
-        log_prob = -0.5 * ((actions - new_actions.raw) / self.policy.logstd.exp()).pow(2) - self.policy.halflog2pi - self.policy.logstd
-        ratios = (log_prob.sum(1) - log_actions.detach().sum(1)).exp()
-#        ratios = (new_actions.compute_log_prob(actions).sum(1) - log_actions.detach().sum(1)).exp()
+        log_probs = new_actions.compute_log_prob(actions)
+        ratios = (log_probs - log_actions.detach()).exp()
         surr = ratios.view(-1, 1) * advantages
         clipped = th.clamp(ratios, 1.0 - self.clip, 1.0 + self.clip).view(-1, 1) * advantages
         policy_loss = - th.min(surr, clipped).mean()
