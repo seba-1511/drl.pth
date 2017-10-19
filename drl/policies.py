@@ -97,7 +97,7 @@ class DiagonalGaussianPolicy(Policy):
         action.logstd = self.logstd
         action.prob = lambda: self._normal(value, action.raw, action.logstd)
         action.entropy = action.logstd + self.halflog2pie
-        action.compute_log_prob = lambda a: (-0.5 * ((a - action.raw) / std).pow(2) - self.halflog2pi - action.logstd).mean(1)
+        action.compute_log_prob = lambda a: (- ((a - action.raw).pow(2) / (2.0 * std)) - self.halflog2pi - action.logstd).mean(1)
         action.log_prob = action.compute_log_prob(value)
         return action
 
