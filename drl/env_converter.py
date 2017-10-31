@@ -66,6 +66,9 @@ class EnvWrapper(object):
         if self.is_discrete and isinstance(action, list):
             action = action[0]
         return self.env.step(action)
+    
+    def _update(self):
+        pass
 
     def __getattr__(self, name):
         if name == 'step':

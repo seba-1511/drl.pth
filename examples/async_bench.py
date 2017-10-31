@@ -8,8 +8,9 @@ from torch.multiprocessing import Queue
 
 from time import sleep, time
 
-from benchmark import train, test, train_update
+from benchmark import train, train_update
 from drl.utils import get_setup
+from drl.training import train, test
 
 
 def async_update(agent, opt, rank, outputs):

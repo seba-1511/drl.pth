@@ -1,15 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from __future__ import print_function
 
-import randopt as ro
 import torch as th
-
-from gym import wrappers
-from time import time
-
 from torch.autograd import Variable as V
 
-from drl.utils import get_setup
+from time import time
+from gym import wrappers
 
 
 def print_stats(name, rewards, n_iters, timing, steps, updates, agent):
@@ -29,19 +25,19 @@ def print_stats(name, rewards, n_iters, timing, steps, updates, agent):
     print('\n')
 
 
-def train_update(args, env, agent, opt):
-    opt.zero_grad()
-    update = agent.get_update()
-    opt.step()
-
-
 def sample_lstm_state(args):
     hx = V(th.zeros(1, args.layer_sizes))
     cx = V(th.zeros(1, args.layer_sizes))
     return hx, cx
 
 
-def train(args, env, agent, opt, update, verbose=True):
+def train_update(args, env, agent, opt):
+    opt.zero_grad()
+    update = agent.get_update()
+    opt.step()
+
+
+def train(args, env, agent, opt, update=train_update, verbose=True):
     train_rewards = []
     iter_reward = []
     train_start = time()
@@ -63,7 +59,8 @@ def train(args, env, agent, opt, update, verbose=True):
                 if verbose:
                     n_iter = train_steps // args.print_interval
                     timing = time() - train_start
-                    print_stats('Train', iter_reward, n_iter, timing, train_steps, num_updates, agent)
+                    print_stats('Train', iter_reward, n_iter, timing,
+                                train_steps, num_updates, agent)
                 iter_reward = []
 
             action, action_info = agent.forward(state, hidden_state)
@@ -71,7 +68,8 @@ def train(args, env, agent, opt, update, verbose=True):
             if args.render:
                 env.render()
             next_state, reward, done, _ = env.step(action)
-            agent.learn(state, action, reward, next_state, done, info=action_info)
+            agent.learn(
+                state, action, reward, next_state, done, info=action_info)
             train_steps += 1
             episode_reward += reward
 
@@ -99,18 +97,7 @@ def test(args, env, agent):
             state, reward, done, _ = env.step(action)
             iter_rewards += reward
         test_rewards.append(iter_rewards)
-    print_stats('Test', test_rewards, args.n_test_iter, time() - test_start, test_steps, 0, agent)
+    print_stats('Test', test_rewards, args.n_test_iter,
+                time() - test_start, test_steps, 0, agent)
     return test_rewards
 
-
-if __name__ == '__main__':
-    args, env, agent, opt = get_setup()
-    exp = ro.Experiment(args.env + '-dev-seq', params={})
-    train_rewards = train(args, env, agent, opt, train_update)
-    test_rewards = test(args, env, agent)
-    data = {p: getattr(args, p) for p in vars(args)}
-    data['train_rewards'] = train_rewards
-    data['test_rewards'] = test_rewards
-    data['timestamp'] = time()
-    exp.add_result(result=sum(test_rewards) / len(test_rewards),
-                   data=data)

@@ -9,9 +9,7 @@ from torch.multiprocessing import Process
 from time import time
 
 from drl.utils import get_setup, parse_args
-
-from benchmark import train, test
-
+from drl.training import train, test
 
 def sync(tensors):
     size = float(dist.get_world_size())

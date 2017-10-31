@@ -11,8 +11,8 @@
 # - ACKTR
 
 ALGO=ppo
-ALGO=reinforce
-N_STEPS=1000000
+#ALGO=reinforce
+N_STEPS=10000
 TEST_N_STEPS=100
 NUM_WORKERS=4
 DROPOUT=0.0
@@ -21,11 +21,12 @@ ENV=CartPole-v0
 ENV=InvertedPendulum-v1
 #ENV=InvertedDoublePendulum-v1
 ENV=Ant-v1
+ENV=DiscreteOrientation-v0
 #ENV=AntBulletEnv-v0
 #ENV=InvertedPendulumBulletEnv-v0
 MODEL=fc
 #MODEL=lstm
-#MODEL=baseline
+MODEL=baseline
 
 ifeq ($(ALGO),ppo)
     FREQ=2048
@@ -75,7 +76,7 @@ endif
 
 ifeq ($(ENV),InvertedPendulumBulletEnv-v0)
     ifeq ($(MODEL),fc)
-	LAYER_SIZE=128
+	LAYER_SIZE=64
 	LR=0.01
 	OPT=Adam
     endif
@@ -113,30 +114,25 @@ ifeq ($(ENV),AntBulletEnv-v0)
 endif
 
 ifeq ($(MODEL),baseline)
-    LR=0.01
+    LR=3e-3
     OPT=Adam
     LAYER_SIZE=32
 endif
 
+#ENV=Reacher-v1
 
 .PHONY: all dev 
 
 all: baseline
 
 async:
-	python async_bench.py --n_proc $(NUM_WORKERS) --algo $(ALGO) --env $(ENV) --n_steps $(N_STEPS) --n_test_iter 100 --opt $(OPT) --lr $(LR) --layer_size $(LAYER_SIZE) --model $(MODEL) --update_frequency $(FREQ) --max_path_length 5000
+	python examples/async_bench.py --n_proc $(NUM_WORKERS) --algo $(ALGO) --env $(ENV) --n_steps $(N_STEPS) --n_test_iter 100 --opt $(OPT) --lr $(LR) --layer_size $(LAYER_SIZE) --model $(MODEL) --update_frequency $(FREQ) --max_path_length 5000
 
 sync:
-	python sync_bench.py --n_proc $(NUM_WORKERS) --algo $(ALGO) --env $(ENV) --n_steps $(N_STEPS) --n_test_iter 100 --opt $(OPT) --lr $(LR) --layer_size $(LAYER_SIZE) --model $(MODEL) --update_frequency $(FREQ) --max_path_length 5000
+	python examples/sync_bench.py --n_proc $(NUM_WORKERS) --algo $(ALGO) --env $(ENV) --n_steps $(N_STEPS) --n_test_iter 100 --opt $(OPT) --lr $(LR) --layer_size $(LAYER_SIZE) --model $(MODEL) --update_frequency $(FREQ) --max_path_length 5000
 
 dev:
-	python benchmark.py --algo $(ALGO) --env $(ENV) --n_steps $(N_STEPS) --model $(MODEL) --dropout $(DROPOUT) --n_test_iter 100 --opt $(OPT) --lr $(LR) --layer_size $(LAYER_SIZE) --update_frequency $(FREQ) --max_path_length 100 --record True
+	python examples/benchmark.py --algo $(ALGO) --env $(ENV) --n_steps $(N_STEPS) --model $(MODEL) --dropout $(DROPOUT) --n_test_iter 100 --opt $(OPT) --lr $(LR) --layer_size $(LAYER_SIZE) --update_frequency $(FREQ) --max_path_length 100 --record True
 
 baseline:
-	python benchmark.py --algo ppo --env Reacher-v1 --n_steps $(N_STEPS) --model baseline --dropout $(DROPOUT) --n_test_iter 100 --opt Adam --lr 3e-3 --layer_size 32 --update_frequency 2048 --max_path_length 5000
-
-
-bench:
-	python benchmark.py --algo $(ALGO) --env Ant-v1 --n_steps 250000 --model fc --dropout $(DROPOUT) --n_test_iter 100 --opt Adam --lr 7e-4 --layer_size 64 --update_frequency 000 --max_path_length 5000
-	python benchmark.py --algo $(ALGO) --env Ant-v1 --n_steps 250000 --model lstm --dropout $(DROPOUT) --n_test_iter 100 --opt SGD --lr 0.00073 --layer_size 32 --update_frequency 000 --max_path_length 5000
-	python benchmark.py --algo $(ALGO) --env Ant-v1 --n_steps 250000 --model fc --dropout $(DROPOUT) --n_test_iter 100 --opt Adam --lr 7e-4 --layer_size 128 --update_frequency 000 --max_path_length 5000
+	python examples/benchmark.py --algo ppo --env Reacher-v1 --n_steps $(N_STEPS) --model baseline --dropout $(DROPOUT) --n_test_iter 100 --opt Adam --lr 3e-3 --layer_size 32 --update_frequency 2048 --max_path_length 5000

@@ -7,7 +7,8 @@ from __future__ import print_function
 
 import numpy as np
 import gym
-import pybullet_envs
+#import pybullet_envs
+import hierarchical_envs
 import torch as th
 
 from collections import Iterable
@@ -153,5 +154,5 @@ def get_setup(seed_offset=0):
             opt = Adam(agent.parameters(), lr=args.lr, eps=1e-5)
         else:
             opt = get_opt(args.opt)(agent.parameters(), lr=args.lr)
-        opt = DistNewton(opt, optimal_lr=False)
+#        opt = DistNewton(opt, optimal_lr=False)
     return args, env, agent, opt
