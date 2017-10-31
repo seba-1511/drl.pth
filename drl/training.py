@@ -26,9 +26,12 @@ def print_stats(name, rewards, n_iters, timing, steps, updates, agent):
 
 
 def sample_lstm_state(args):
-    hx = V(th.zeros(1, args.layer_sizes))
-    cx = V(th.zeros(1, args.layer_sizes))
-    return hx, cx
+    if 'layer_sizes' in vars(args):
+        hx = V(th.zeros(1, args.layer_sizes))
+        cx = V(th.zeros(1, args.layer_sizes))
+        return hx, cx
+    else:
+        return None
 
 
 def train_update(args, env, agent, opt):
@@ -83,7 +86,10 @@ def train(args, env, agent, opt, update=train_update, verbose=True):
 
 def test(args, env, agent):
     if args.record:
-        env = wrappers.Monitor(env, './videos/' + args.env + str(time()) + '/')
+        if 'env' in vars(args):
+            env = wrappers.Monitor(env, './videos/' + args.env + str(time()) + '/')
+        else:
+            env = wrappers.Monitor(env, './videos/' + str(time()) + '/')
     test_rewards = []
     test_start = time()
     test_steps = 0

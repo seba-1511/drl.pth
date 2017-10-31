@@ -5,10 +5,8 @@ from __future__ import print_function
     Some utility functions.
 """
 
-import numpy as np
 import gym
-#import pybullet_envs
-import hierarchical_envs
+import numpy as np
 import torch as th
 
 from collections import Iterable
@@ -23,6 +21,29 @@ from .models import FC2, LSTM2, Baseline
 from .policies import ContinuousPolicy, DiscretePolicy, DiagonalGaussianPolicy, Policy
 from .env_converter import EnvWrapper, StateNormalizer, ActionNormalizer, numel
 from .algos.algos_utils import DiscountedAdvantage, GeneralizedAdvantageEstimation
+
+
+def parse_min_args():
+    # Parse arguments
+    parser = ArgumentParser()
+    parser.add_argument('--expname', '-e', dest='exp', metavar='e', type=str,
+                        default='dev', help='Name of the experiment to be run.')
+    parser.add_argument('--n_steps', dest='n_steps', type=int,
+                        default=300, help='Number of updates to be performed.')
+    parser.add_argument('--n_test_iter', dest='n_test_iter', type=int,
+                        default=100, help='Number of episodes to test on.')
+    parser.add_argument('--update_frequency', dest='update_frequency', type=int,
+                        default=1500, help='Number of steps before updating parameters.')
+    parser.add_argument('--max_path_length', dest='max_path_length', type=int,
+                        default=15000, help='Max length for a trajectory/episode.')
+    parser.add_argument('--print_interval', dest='print_interval', type=int,
+                        default=1000, help='Number of steps between each print summary.')
+    parser.add_argument('--record', dest='record', type=bool,
+                        default=False, help='Whether to record videos at test time.')
+    parser.add_argument('--render', dest='render', type=bool,
+                        default=False, help='Whether to render display at train time.')
+    return parser.parse_args()
+
 
 
 def parse_args():
@@ -76,8 +97,6 @@ def parse_args():
                         default=False, help='Whether to record videos at test time.')
     parser.add_argument('--render', dest='render', type=bool,
                         default=False, help='Whether to render display at train time.')
-    parser.add_argument('--upload', dest='upload', type=bool,
-                        default=False, help='Whether to upload results to the OpenAI servers.')
     return parser.parse_args()
 
 
