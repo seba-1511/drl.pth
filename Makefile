@@ -138,4 +138,4 @@ baseline:
 	python examples/benchmark.py --algo ppo --env Reacher-v1 --n_steps $(N_STEPS) --model baseline --dropout $(DROPOUT) --n_test_iter 100 --opt Adam --lr 3e-3 --layer_size 32 --update_frequency 2048 --max_path_length 5000
 
 hl:
-	python examples/high_level.py --n_steps 1000000 --max_path_length 5000 --update_frequency 1000 --print_interval 1000 --record True
+	python examples/high_level.py --n_steps 400000 --max_path_length 5000 --update_frequency 1000 --print_interval 1000 --record True

@@ -2,7 +2,9 @@
 
 import gym
 import hierarchical_envs
+from hierarchical_envs.orientation_env import StochasticDiscreteOrientation
 import randopt as ro
+import torch as th
 
 import torch.optim as optim
 
@@ -21,18 +23,19 @@ if __name__ == '__main__':
 #    args, env, agent, opt = get_setup()
     args = parse_min_args()
 
-    env = gym.make('DiscreteOrientation-v0')
+#    env = gym.make('DiscreteOrientation-v0', size_noise=0.0)
+    env = StochasticDiscreteOrientation(size_noise=0.0)
     env = EnvWrapper(env)
     env.seed(1234)
-    model, critic =  Baseline(env.state_size, env.action_size, layer_sizes=(4, 4), discrete=True)
+    model, critic =  Baseline(env.state_size, env.action_size, layer_sizes=(2, 2), discrete=True)
     policy = DiscretePolicy(model)
     agent = Reinforce(policy=policy, critic=critic, update_frequency=args.update_frequency,
                       critic_weight=1.0,
-                      entropy_weight=0.001,
-                      grad_clip=0.5,
+                      entropy_weight=0.0001,
+#                      grad_clip=0.5,
                       advantage=DiscountedAdvantage())
 #                      advantage=GeneralizedAdvantageEstimation(tau=0.95, gamma=0.99))
-    opt = optim.Adam(agent.parameters(), lr=1e-3, eps=1e-5)
+    opt = optim.Adam(agent.parameters(), lr=7e-4, eps=1e-5)
 
 
     exp = ro.Experiment('DiscreteOrientation-dev-seq', params={})
@@ -44,3 +47,4 @@ if __name__ == '__main__':
     data['timestamp'] = time()
     exp.add_result(result=sum(test_rewards) / len(test_rewards),
                    data=data)
+    th.save(agent.state_dict(), './high_level.pth')
